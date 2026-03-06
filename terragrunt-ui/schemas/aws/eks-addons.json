@@ -1,0 +1,198 @@
+{
+  "id": "eks-addons",
+  "name": "EKS Addons",
+  "description": "Kubernetes addons for EKS clusters - EBS CSI, ALB Controller, Karpenter, Metrics Server, and more",
+  "provider": "aws",
+  "icon": "eks",
+  "category": "containers",
+  "module": {
+    "source": "git::https://github.com/aws-ia/terraform-aws-eks-blueprints-addons.git//?ref=v1.19.0"
+  },
+  "inputs": [
+    {
+      "name": "cluster_name",
+      "label": "EKS Cluster Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-eks-cluster",
+      "description": "Name of the target EKS cluster"
+    },
+    {
+      "name": "cluster_endpoint",
+      "label": "Cluster Endpoint",
+      "type": "string",
+      "required": true,
+      "placeholder": "https://ABCDEF1234.gr7.us-east-1.eks.amazonaws.com",
+      "description": "EKS cluster API endpoint URL"
+    },
+    {
+      "name": "cluster_version",
+      "label": "Cluster Version",
+      "type": "select",
+      "default": "1.31",
+      "options": ["1.33", "1.32", "1.31", "1.30", "1.29"],
+      "description": "Kubernetes version of the cluster"
+    },
+    {
+      "name": "oidc_provider_arn",
+      "label": "OIDC Provider ARN",
+      "type": "string",
+      "required": true,
+      "placeholder": "arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/ABCDEF",
+      "description": "ARN of the OIDC provider for IRSA"
+    },
+    {
+      "name": "enable_aws_load_balancer_controller",
+      "label": "AWS Load Balancer Controller",
+      "type": "boolean",
+      "default": true,
+      "description": "Install AWS Load Balancer Controller for ALB/NLB ingress"
+    },
+    {
+      "name": "aws_load_balancer_controller",
+      "label": "ALB Controller Config",
+      "type": "hcl",
+      "description": "Additional configuration for AWS Load Balancer Controller",
+      "placeholder": "{\n  set = [\n    {\n      name  = \"vpcId\"\n      value = \"vpc-abc123\"\n    }\n  ]\n}",
+      "rows": 6,
+      "advanced": true
+    },
+    {
+      "name": "enable_aws_ebs_csi_driver",
+      "label": "AWS EBS CSI Driver",
+      "type": "boolean",
+      "default": true,
+      "description": "Install EBS CSI driver for persistent volume support"
+    },
+    {
+      "name": "enable_aws_efs_csi_driver",
+      "label": "AWS EFS CSI Driver",
+      "type": "boolean",
+      "default": false,
+      "description": "Install EFS CSI driver for shared file storage"
+    },
+    {
+      "name": "enable_metrics_server",
+      "label": "Metrics Server",
+      "type": "boolean",
+      "default": true,
+      "description": "Install Metrics Server for HPA and kubectl top"
+    },
+    {
+      "name": "enable_cluster_autoscaler",
+      "label": "Cluster Autoscaler",
+      "type": "boolean",
+      "default": false,
+      "description": "Install Cluster Autoscaler (not needed if using Karpenter)"
+    },
+    {
+      "name": "enable_karpenter",
+      "label": "Karpenter",
+      "type": "boolean",
+      "default": false,
+      "description": "Install Karpenter for intelligent node autoscaling"
+    },
+    {
+      "name": "karpenter",
+      "label": "Karpenter Config",
+      "type": "hcl",
+      "description": "Karpenter helm chart configuration",
+      "placeholder": "{\n  repository_username = data.aws_ecrpublic_authorization_token.token.user_name\n  repository_password = data.aws_ecrpublic_authorization_token.token.password\n}",
+      "rows": 6,
+      "advanced": true
+    },
+    {
+      "name": "karpenter_node",
+      "label": "Karpenter NodePool & EC2NodeClass",
+      "type": "hcl",
+      "description": "Karpenter NodePool and EC2NodeClass definitions as raw HCL",
+      "placeholder": "# Define your Karpenter NodePool and EC2NodeClass here\n# This will be included as additional Terraform resources",
+      "rows": 20,
+      "advanced": true
+    },
+    {
+      "name": "enable_external_dns",
+      "label": "External DNS",
+      "type": "boolean",
+      "default": false,
+      "description": "Install External DNS for automatic Route53 record management"
+    },
+    {
+      "name": "enable_cert_manager",
+      "label": "Cert Manager",
+      "type": "boolean",
+      "default": false,
+      "description": "Install cert-manager for TLS certificate management"
+    },
+    {
+      "name": "enable_aws_cloudwatch_metrics",
+      "label": "CloudWatch Metrics",
+      "type": "boolean",
+      "default": false,
+      "description": "Install CloudWatch agent for container insights",
+      "advanced": true
+    },
+    {
+      "name": "enable_aws_for_fluentbit",
+      "label": "AWS for Fluent Bit",
+      "type": "boolean",
+      "default": false,
+      "description": "Install Fluent Bit for log forwarding to CloudWatch",
+      "advanced": true
+    },
+    {
+      "name": "enable_ingress_nginx",
+      "label": "Nginx Ingress Controller",
+      "type": "boolean",
+      "default": false,
+      "description": "Install Nginx Ingress Controller",
+      "advanced": true
+    },
+    {
+      "name": "enable_kube_prometheus_stack",
+      "label": "Kube Prometheus Stack",
+      "type": "boolean",
+      "default": false,
+      "description": "Install Prometheus + Grafana monitoring stack",
+      "advanced": true
+    },
+    {
+      "name": "enable_argocd",
+      "label": "ArgoCD",
+      "type": "boolean",
+      "default": false,
+      "description": "Install ArgoCD for GitOps continuous delivery",
+      "advanced": true
+    },
+    {
+      "name": "enable_velero",
+      "label": "Velero",
+      "type": "boolean",
+      "default": false,
+      "description": "Install Velero for cluster backup and disaster recovery",
+      "advanced": true
+    },
+    {
+      "name": "enable_csi_secrets_store_provider_aws",
+      "label": "Secrets Store CSI Driver",
+      "type": "boolean",
+      "default": false,
+      "description": "Install AWS Secrets Manager CSI provider",
+      "advanced": true
+    },
+    {
+      "name": "enable_external_secrets",
+      "label": "External Secrets",
+      "type": "boolean",
+      "default": false,
+      "description": "Install External Secrets Operator for syncing secrets from AWS",
+      "advanced": true
+    }
+  ],
+  "common_inputs": {
+    "region": true,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/eks-addons-{cluster_name}/terragrunt.hcl"
+}

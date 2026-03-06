@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - backend-data:/app/data
+      - /tmp/grandform-run:/tmp/grandform-run
+      - /tmp:/tmp
+    environment:
+      - EXECUTION_MODE=docker
+      - SCHEMAS_DIR=/schemas
+      - GRANDFORM_DATA_DIR=/app/data
+    depends_on:
+      runner:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  runner:
+    build:
+      context: ./runner
+      dockerfile: Dockerfile
+    image: terragrunt-runner
+    entrypoint: ["echo", "Runner image built successfully"]
+
+volumes:
+  backend-data:

@@ -1,0 +1,77 @@
+replicaCount: 1
+
+backend:
+  image:
+    repository: 479929096157.dkr.ecr.us-east-1.amazonaws.com/terraforge-backend
+    tag: v1
+    pullPolicy: IfNotPresent
+  port: 8080
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    EXECUTION_MODE: "kubernetes"
+    SCHEMAS_DIR: "/schemas"
+    GRANDFORM_DATA_DIR: "/app/data"
+
+frontend:
+  image:
+    repository: 479929096157.dkr.ecr.us-east-1.amazonaws.com/terraforge-frontend
+    tag: v1
+    pullPolicy: IfNotPresent
+  port: 80
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+runner:
+  image:
+    repository: 479929096157.dkr.ecr.us-east-1.amazonaws.com/terraforge-runner
+    tag: v1
+    pullPolicy: IfNotPresent
+
+persistence:
+  enabled: true
+  size: 1Gi
+  storageClass: ""  # use default storage class; set to "gp3" for EKS
+  accessMode: ReadWriteOnce
+
+ingress:
+  enabled: false
+  className: nginx  # "nginx" or "alb"
+  host: terraforge.example.com
+  tls: false
+  annotations: {}
+    # For AWS ALB:
+    # kubernetes.io/ingress.class: alb
+    # alb.ingress.kubernetes.io/scheme: internet-facing
+    # alb.ingress.kubernetes.io/target-type: ip
+
+secrets:
+  # REQUIRED: Set a strong encryption key for settings encryption
+  encryptionKey: ""
+  # Optional: Pre-configure AWS credentials via Helm values
+  # (can also be configured via the UI at runtime)
+  aws:
+    accessKeyId: ""
+    secretAccessKey: ""
+    defaultRegion: "us-east-1"
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+    # For IRSA (IAM Roles for Service Accounts) on EKS:
+    # eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/terraforge-role
+
+github:
+  # Optional: Mount GitHub App PEM key from an existing secret
+  appPemSecret: ""

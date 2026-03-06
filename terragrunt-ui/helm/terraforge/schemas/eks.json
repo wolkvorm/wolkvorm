@@ -1,0 +1,208 @@
+{
+  "id": "eks",
+  "name": "EKS Cluster",
+  "description": "Amazon Elastic Kubernetes Service managed cluster",
+  "provider": "aws",
+  "icon": "eks",
+  "category": "containers",
+  "module": {
+    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-eks.git//?ref=v20.31.0"
+  },
+  "inputs": [
+    {
+      "name": "name",
+      "label": "Cluster Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-eks-cluster",
+      "description": "Name of the EKS cluster"
+    },
+    {
+      "name": "kubernetes_version",
+      "label": "Kubernetes Version",
+      "type": "select",
+      "default": "1.31",
+      "options": ["1.31", "1.30", "1.29", "1.28"],
+      "description": "Kubernetes version for the cluster"
+    },
+    {
+      "name": "vpc_id",
+      "label": "VPC ID",
+      "type": "string",
+      "required": true,
+      "placeholder": "vpc-0123456789abcdef0",
+      "description": "VPC where the cluster will be deployed",
+      "aws_resource": "vpc"
+    },
+    {
+      "name": "subnet_ids",
+      "label": "Subnet IDs",
+      "type": "string",
+      "required": true,
+      "placeholder": "subnet-abc123,subnet-def456,subnet-ghi789",
+      "description": "Comma-separated subnet IDs for nodes/node groups",
+      "aws_resource": "subnet",
+      "multi": true
+    },
+    {
+      "name": "control_plane_subnet_ids",
+      "label": "Control Plane Subnet IDs",
+      "type": "string",
+      "placeholder": "subnet-abc123,subnet-def456",
+      "description": "Subnet IDs for EKS control plane ENIs (optional, uses subnet_ids if empty)",
+      "aws_resource": "subnet",
+      "multi": true
+    },
+    {
+      "name": "endpoint_private_access",
+      "label": "Private API Endpoint",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable private API server endpoint"
+    },
+    {
+      "name": "endpoint_public_access",
+      "label": "Public API Endpoint",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable public API server endpoint"
+    },
+    {
+      "name": "endpoint_public_access_cidrs",
+      "label": "Public Access CIDRs",
+      "type": "string",
+      "default": "0.0.0.0/0",
+      "placeholder": "0.0.0.0/0",
+      "description": "Comma-separated CIDRs that can access the public API endpoint"
+    },
+    {
+      "name": "enable_cluster_creator_admin_permissions",
+      "label": "Creator Admin Access",
+      "type": "boolean",
+      "default": false,
+      "description": "Give cluster creator admin permissions via access entry"
+    },
+    {
+      "name": "authentication_mode",
+      "label": "Authentication Mode",
+      "type": "select",
+      "default": "API_AND_CONFIG_MAP",
+      "options": ["API", "CONFIG_MAP", "API_AND_CONFIG_MAP"],
+      "description": "Cluster authentication mode",
+      "advanced": true
+    },
+    {
+      "name": "enabled_log_types",
+      "label": "Control Plane Log Types",
+      "type": "string",
+      "default": "audit,api,authenticator",
+      "placeholder": "audit,api,authenticator,controllerManager,scheduler",
+      "description": "Comma-separated control plane log types to enable",
+      "advanced": true
+    },
+    {
+      "name": "enable_irsa",
+      "label": "IRSA (IAM Roles for Service Accounts)",
+      "type": "boolean",
+      "default": true,
+      "description": "Create OIDC provider for IAM roles for service accounts",
+      "advanced": true
+    },
+    {
+      "name": "create_kms_key",
+      "label": "Create KMS Key",
+      "type": "boolean",
+      "default": true,
+      "description": "Create a KMS key for cluster encryption",
+      "advanced": true
+    },
+    {
+      "name": "enable_kms_key_rotation",
+      "label": "KMS Key Rotation",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable automatic KMS key rotation",
+      "advanced": true
+    },
+    {
+      "name": "create_cloudwatch_log_group",
+      "label": "CloudWatch Log Group",
+      "type": "boolean",
+      "default": true,
+      "description": "Create CloudWatch log group for control plane logs",
+      "advanced": true
+    },
+    {
+      "name": "cloudwatch_log_group_retention_in_days",
+      "label": "Log Retention (days)",
+      "type": "number",
+      "default": 90,
+      "description": "CloudWatch log group retention period in days",
+      "advanced": true
+    },
+    {
+      "name": "create_security_group",
+      "label": "Create Cluster SG",
+      "type": "boolean",
+      "default": true,
+      "description": "Create a security group for the cluster",
+      "advanced": true
+    },
+    {
+      "name": "create_node_security_group",
+      "label": "Create Node SG",
+      "type": "boolean",
+      "default": true,
+      "description": "Create a shared security group for node groups",
+      "advanced": true
+    },
+    {
+      "name": "ip_family",
+      "label": "IP Family",
+      "type": "select",
+      "default": "ipv4",
+      "options": ["ipv4", "ipv6"],
+      "description": "IP family for Kubernetes pod and service addresses",
+      "advanced": true
+    },
+    {
+      "name": "service_ipv4_cidr",
+      "label": "Service IPv4 CIDR",
+      "type": "string",
+      "placeholder": "172.20.0.0/16",
+      "description": "CIDR block for Kubernetes service IP addresses",
+      "advanced": true
+    },
+    {
+      "name": "deletion_protection",
+      "label": "Deletion Protection",
+      "type": "boolean",
+      "default": false,
+      "description": "Prevent accidental cluster deletion",
+      "advanced": true
+    },
+    {
+      "name": "attach_encryption_policy",
+      "label": "Encryption IAM Policy",
+      "type": "boolean",
+      "default": true,
+      "description": "Attach IAM policy for cluster encryption key",
+      "advanced": true
+    },
+    {
+      "name": "dataplane_wait_duration",
+      "label": "Dataplane Wait Duration",
+      "type": "string",
+      "default": "30s",
+      "placeholder": "30s",
+      "description": "Duration to wait after cluster is active before creating node groups",
+      "advanced": true
+    }
+  ],
+  "common_inputs": {
+    "region": true,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/eks-{name}/terragrunt.hcl"
+}

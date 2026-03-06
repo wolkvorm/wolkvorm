@@ -1,0 +1,63 @@
+{
+  "id": "kms",
+  "name": "KMS Key",
+  "description": "AWS Key Management Service encryption key",
+  "provider": "aws",
+  "icon": "kms",
+  "category": "security",
+  "module": {
+    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-kms.git//?ref=v3.0.0"
+  },
+  "inputs": [
+    {
+      "name": "description",
+      "label": "Key Description",
+      "type": "string",
+      "required": true,
+      "placeholder": "Encryption key for my application",
+      "description": "Description of the KMS key"
+    },
+    {
+      "name": "key_usage",
+      "label": "Key Usage",
+      "type": "select",
+      "default": "ENCRYPT_DECRYPT",
+      "options": ["ENCRYPT_DECRYPT", "SIGN_VERIFY"],
+      "description": "Intended use of the key"
+    },
+    {
+      "name": "deletion_window_in_days",
+      "label": "Deletion Window (days)",
+      "type": "number",
+      "default": 30,
+      "description": "Days to wait before deleting the key (7-30)"
+    },
+    {
+      "name": "enable_key_rotation",
+      "label": "Key Rotation",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable automatic annual key rotation"
+    },
+    {
+      "name": "is_enabled",
+      "label": "Enabled",
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the key is enabled"
+    },
+    {
+      "name": "multi_region",
+      "label": "Multi-Region",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable multi-region key replication"
+    }
+  ],
+  "common_inputs": {
+    "region": true,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/kms-{description}/terragrunt.hcl"
+}

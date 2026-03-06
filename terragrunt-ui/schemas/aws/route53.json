@@ -1,0 +1,42 @@
+{
+  "id": "route53",
+  "name": "Route 53 Zone",
+  "description": "Amazon Route 53 hosted zone for DNS management",
+  "provider": "aws",
+  "icon": "route53",
+  "category": "networking",
+  "module": {
+    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-route53.git//modules/zones?ref=v2.11.0"
+  },
+  "inputs": [
+    {
+      "name": "zone_name",
+      "label": "Domain Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "example.com",
+      "description": "The DNS domain name for the hosted zone"
+    },
+    {
+      "name": "comment",
+      "label": "Comment",
+      "type": "string",
+      "default": "Managed by GrandForm",
+      "placeholder": "Production DNS zone",
+      "description": "Comment for the hosted zone"
+    },
+    {
+      "name": "force_destroy",
+      "label": "Force Destroy",
+      "type": "boolean",
+      "default": false,
+      "description": "Destroy zone even if it has records"
+    }
+  ],
+  "common_inputs": {
+    "region": true,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/route53-{zone_name}/terragrunt.hcl"
+}

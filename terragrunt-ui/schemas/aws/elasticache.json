@@ -1,0 +1,101 @@
+{
+  "id": "elasticache",
+  "name": "ElastiCache",
+  "description": "Amazon ElastiCache Redis/Memcached in-memory cache",
+  "provider": "aws",
+  "icon": "elasticache",
+  "category": "database",
+  "module": {
+    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-elasticache.git//?ref=v1.2.0"
+  },
+  "inputs": [
+    {
+      "name": "replication_group_id",
+      "label": "Cluster Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-redis-cluster",
+      "description": "Identifier for the replication group"
+    },
+    {
+      "name": "engine",
+      "label": "Engine",
+      "type": "select",
+      "default": "redis",
+      "options": [
+        "redis",
+        "memcached"
+      ],
+      "description": "Cache engine type"
+    },
+    {
+      "name": "node_type",
+      "label": "Node Type",
+      "type": "select",
+      "default": "cache.t3.micro",
+      "options": [
+        "cache.t3.micro",
+        "cache.t3.small",
+        "cache.t3.medium",
+        "cache.r6g.large",
+        "cache.r6g.xlarge",
+        "cache.m6g.large"
+      ],
+      "description": "Cache node instance type"
+    },
+    {
+      "name": "num_cache_nodes",
+      "label": "Number of Nodes",
+      "type": "number",
+      "default": 1,
+      "description": "Number of cache nodes in the cluster"
+    },
+    {
+      "name": "engine_version",
+      "label": "Engine Version",
+      "type": "select",
+      "default": "7.1",
+      "options": [
+        "7.1",
+        "7.0",
+        "6.2",
+        "6.0",
+        "5.0.6",
+        "1.6.22",
+        "1.6.17",
+        "1.5.16"
+      ],
+      "description": "Cache engine version (7.x for Redis 7, 1.6.x for Memcached)"
+    },
+    {
+      "name": "port",
+      "label": "Port",
+      "type": "number",
+      "default": 6379,
+      "description": "Port number for the cache"
+    },
+    {
+      "name": "automatic_failover_enabled",
+      "label": "Automatic Failover",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable automatic failover (requires 2+ nodes)"
+    },
+    {
+      "name": "subnet_ids",
+      "label": "Subnet IDs",
+      "type": "string",
+      "required": true,
+      "placeholder": "subnet-abc123,subnet-def456",
+      "description": "Comma-separated subnet IDs for the cache subnet group",
+      "aws_resource": "subnet",
+      "multi": true
+    }
+  ],
+  "common_inputs": {
+    "region": true,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/cache-{replication_group_id}/terragrunt.hcl"
+}

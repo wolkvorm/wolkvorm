@@ -1,0 +1,379 @@
+{
+  "id": "eks",
+  "name": "EKS Cluster",
+  "description": "Amazon Elastic Kubernetes Service managed cluster with full configuration support",
+  "provider": "aws",
+  "icon": "eks",
+  "category": "containers",
+  "module": {
+    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-eks.git//?ref=v20.37.1"
+  },
+  "inputs": [
+    {
+      "name": "cluster_name",
+      "label": "Cluster Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-eks-cluster",
+      "description": "Name of the EKS cluster"
+    },
+    {
+      "name": "cluster_version",
+      "label": "Kubernetes Version",
+      "type": "select",
+      "default": "1.31",
+      "options": [
+        "1.33",
+        "1.32",
+        "1.31",
+        "1.30",
+        "1.29",
+        "1.28"
+      ],
+      "description": "Kubernetes version for the cluster"
+    },
+    {
+      "name": "vpc_id",
+      "label": "VPC ID",
+      "type": "string",
+      "required": true,
+      "placeholder": "vpc-0123456789abcdef0",
+      "description": "VPC where the cluster will be deployed",
+      "aws_resource": "vpc"
+    },
+    {
+      "name": "control_plane_subnet_ids",
+      "label": "Control Plane Subnet IDs",
+      "type": "string",
+      "required": true,
+      "placeholder": "subnet-abc123,subnet-def456",
+      "description": "Subnet IDs for EKS control plane ENIs (typically private subnets)",
+      "aws_resource": "subnet",
+      "multi": true
+    },
+    {
+      "name": "subnet_ids",
+      "label": "Node Subnet IDs",
+      "type": "string",
+      "placeholder": "subnet-abc123,subnet-def456,subnet-ghi789",
+      "description": "Comma-separated subnet IDs for node groups (if different from control plane)",
+      "aws_resource": "subnet",
+      "multi": true
+    },
+    {
+      "name": "cluster_endpoint_public_access",
+      "label": "Public API Endpoint",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable public API server endpoint"
+    },
+    {
+      "name": "cluster_endpoint_private_access",
+      "label": "Private API Endpoint",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable private API server endpoint"
+    },
+    {
+      "name": "cluster_endpoint_public_access_cidrs",
+      "label": "Public Access CIDRs",
+      "type": "string",
+      "default": "0.0.0.0/0",
+      "placeholder": "0.0.0.0/0",
+      "description": "Comma-separated CIDRs that can access the public API endpoint"
+    },
+    {
+      "name": "manage_aws_auth_configmap",
+      "label": "Manage aws-auth ConfigMap",
+      "type": "boolean",
+      "default": true,
+      "description": "Manage the aws-auth configmap for RBAC mappings"
+    },
+    {
+      "name": "enable_cluster_creator_admin_permissions",
+      "label": "Creator Admin Access",
+      "type": "boolean",
+      "default": false,
+      "description": "Give cluster creator admin permissions via access entry"
+    },
+    {
+      "name": "cluster_enabled_log_types",
+      "label": "Control Plane Log Types",
+      "type": "string",
+      "default": "",
+      "placeholder": "audit,api,authenticator,controllerManager,scheduler",
+      "description": "Comma-separated control plane log types (leave empty for none)"
+    },
+    {
+      "name": "cluster_addons",
+      "label": "Cluster Addons",
+      "type": "hcl",
+      "description": "EKS cluster addons configuration (coredns, kube-proxy, vpc-cni, etc.)",
+      "placeholder": "{\n  coredns = {\n    most_recent = true\n\n    configuration_values = jsonencode({\n      tolerations = [\n        {\n          operator = \"Exists\"\n        }\n      ]\n    })\n  }\n\n  kube-proxy = {\n    most_recent = true\n  }\n\n  vpc-cni = {\n    most_recent = true\n  }\n}",
+      "rows": 15,
+      "advanced": false
+    },
+    {
+      "name": "kms_key_administrators",
+      "label": "KMS Key Administrators",
+      "type": "list",
+      "description": "IAM ARNs that can administer the KMS encryption key (one per line)",
+      "placeholder": "arn:aws:iam::123456789012:user/admin\narn:aws:iam::123456789012:role/admin-role",
+      "rows": 4,
+      "advanced": true
+    },
+    {
+      "name": "kms_key_users",
+      "label": "KMS Key Users",
+      "type": "list",
+      "description": "IAM ARNs that can use the KMS encryption key (one per line)",
+      "placeholder": "arn:aws:iam::123456789012:user/user1\narn:aws:iam::123456789012:role/user-role",
+      "rows": 4,
+      "advanced": true
+    },
+    {
+      "name": "node_security_group_enable_recommended_rules",
+      "label": "Enable Recommended Node SG Rules",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable recommended security group rules for node communication",
+      "advanced": true
+    },
+    {
+      "name": "node_security_group_additional_rules",
+      "label": "Node Security Group Additional Rules",
+      "type": "hcl",
+      "description": "Additional security group rules for the node group",
+      "placeholder": "{\n  ingress_self_all = {\n    from_port = 0\n    to_port   = 0\n    protocol  = \"-1\"\n    type      = \"ingress\"\n    self      = true\n  }\n\n  ingress_cluster_all = {\n    from_port                     = 0\n    to_port                       = 0\n    protocol                      = \"-1\"\n    type                          = \"ingress\"\n    source_cluster_security_group = true\n  }\n}",
+      "rows": 12,
+      "advanced": true
+    },
+    {
+      "name": "node_security_group_tags",
+      "label": "Node Security Group Tags",
+      "type": "hcl",
+      "description": "Additional tags for the node security group (e.g. Karpenter discovery)",
+      "placeholder": "{\n  \"karpenter.sh/discovery\" = \"my-cluster\"\n}",
+      "rows": 4,
+      "advanced": true
+    },
+    {
+      "name": "node_desired_size",
+      "label": "Node Desired Size",
+      "type": "number",
+      "default": 2,
+      "description": "Desired number of nodes in each managed node group"
+    },
+    {
+      "name": "node_min_size",
+      "label": "Node Min Size",
+      "type": "number",
+      "default": 1,
+      "description": "Minimum number of nodes in each managed node group"
+    },
+    {
+      "name": "node_max_size",
+      "label": "Node Max Size",
+      "type": "number",
+      "default": 4,
+      "description": "Maximum number of nodes in each managed node group"
+    },
+    {
+      "name": "node_instance_types",
+      "label": "Node Instance Types",
+      "type": "select",
+      "default": "t3.large",
+      "options": [
+        "t3.medium",
+        "t3.large",
+        "t3.xlarge",
+        "t3.2xlarge",
+        "m5.large",
+        "m5.xlarge",
+        "m5.2xlarge",
+        "m5.4xlarge",
+        "m6i.large",
+        "m6i.xlarge",
+        "m6i.2xlarge",
+        "c5.large",
+        "c5.xlarge",
+        "c5.2xlarge",
+        "r5.large",
+        "r5.xlarge",
+        "r5.2xlarge",
+        "m6g.large",
+        "m6g.xlarge",
+        "c6g.large",
+        "r6g.large"
+      ],
+      "description": "EC2 instance type for the node group"
+    },
+    {
+      "name": "node_capacity_type",
+      "label": "Capacity Type",
+      "type": "select",
+      "default": "ON_DEMAND",
+      "options": [
+        "ON_DEMAND",
+        "SPOT"
+      ],
+      "description": "Capacity type for the node group (ON_DEMAND or SPOT)"
+    },
+    {
+      "name": "node_ami_type",
+      "label": "AMI Type",
+      "type": "select",
+      "default": "AL2023_x86_64_STANDARD",
+      "options": [
+        "AL2023_x86_64_STANDARD",
+        "AL2023_ARM_64_STANDARD",
+        "AL2_x86_64",
+        "AL2_x86_64_GPU",
+        "AL2_ARM_64",
+        "BOTTLEROCKET_x86_64",
+        "BOTTLEROCKET_ARM_64",
+        "WINDOWS_CORE_2022_x86_64",
+        "WINDOWS_FULL_2022_x86_64"
+      ],
+      "description": "AMI type for the node group"
+    },
+    {
+      "name": "node_disk_size",
+      "label": "Node Disk Size (GB)",
+      "type": "number",
+      "default": 50,
+      "description": "Disk size in GB for each node"
+    },
+    {
+      "name": "eks_managed_node_group_defaults",
+      "label": "Node Group Extra Config",
+      "type": "hcl",
+      "description": "Additional default configuration for managed node groups (IAM policies, block devices, etc.)",
+      "placeholder": "{\n  iam_role_additional_policies = {\n    additional = \"arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore\"\n  }\n\n  ebs_optimized = true\n  update_config = {\n    max_unavailable_percentage = 33\n  }\n}",
+      "rows": 12,
+      "advanced": true
+    },
+    {
+      "name": "eks_managed_node_groups",
+      "label": "Managed Node Groups",
+      "type": "hcl",
+      "description": "Custom node group definitions (overrides defaults above). Leave empty to use a single default node group.",
+      "placeholder": "{\n  \"default-a\" = {\n    subnet_ids     = [\"subnet-abc123\"]\n    instance_types = [\"t3.large\"]\n    ami_type       = \"AL2023_x86_64_STANDARD\"\n\n    labels = {\n      network = \"private\"\n    }\n  }\n}",
+      "rows": 15,
+      "advanced": true
+    },
+    {
+      "name": "authentication_mode",
+      "label": "Authentication Mode",
+      "type": "select",
+      "default": "API_AND_CONFIG_MAP",
+      "options": [
+        "API",
+        "CONFIG_MAP",
+        "API_AND_CONFIG_MAP"
+      ],
+      "description": "Cluster authentication mode",
+      "advanced": true
+    },
+    {
+      "name": "enable_irsa",
+      "label": "IRSA (IAM Roles for Service Accounts)",
+      "type": "boolean",
+      "default": true,
+      "description": "Create OIDC provider for IAM roles for service accounts",
+      "advanced": true
+    },
+    {
+      "name": "create_kms_key",
+      "label": "Create KMS Key",
+      "type": "boolean",
+      "default": true,
+      "description": "Create a KMS key for cluster encryption",
+      "advanced": true
+    },
+    {
+      "name": "enable_kms_key_rotation",
+      "label": "KMS Key Rotation",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable automatic KMS key rotation",
+      "advanced": true
+    },
+    {
+      "name": "create_cloudwatch_log_group",
+      "label": "CloudWatch Log Group",
+      "type": "boolean",
+      "default": true,
+      "description": "Create CloudWatch log group for control plane logs",
+      "advanced": true
+    },
+    {
+      "name": "cloudwatch_log_group_retention_in_days",
+      "label": "Log Retention (days)",
+      "type": "number",
+      "default": 90,
+      "description": "CloudWatch log group retention period in days",
+      "advanced": true
+    },
+    {
+      "name": "create_cluster_security_group",
+      "label": "Create Cluster SG",
+      "type": "boolean",
+      "default": true,
+      "description": "Create a security group for the cluster",
+      "advanced": true
+    },
+    {
+      "name": "create_node_security_group",
+      "label": "Create Node SG",
+      "type": "boolean",
+      "default": true,
+      "description": "Create a shared security group for node groups",
+      "advanced": true
+    },
+    {
+      "name": "ip_family",
+      "label": "IP Family",
+      "type": "select",
+      "default": "ipv4",
+      "options": [
+        "ipv4",
+        "ipv6"
+      ],
+      "description": "IP family for Kubernetes pod and service addresses",
+      "advanced": true
+    },
+    {
+      "name": "deletion_protection",
+      "label": "Deletion Protection",
+      "type": "boolean",
+      "default": false,
+      "description": "Prevent accidental cluster deletion",
+      "advanced": true
+    },
+    {
+      "name": "aws_auth_roles",
+      "label": "aws-auth Roles",
+      "type": "hcl",
+      "description": "IAM roles to map into the aws-auth configmap",
+      "placeholder": "[\n  {\n    rolearn  = \"arn:aws:iam::123456789012:role/my-role\"\n    username = \"my-role\"\n    groups   = [\"system:masters\"]\n  }\n]",
+      "rows": 8,
+      "advanced": true
+    },
+    {
+      "name": "aws_auth_users",
+      "label": "aws-auth Users",
+      "type": "hcl",
+      "description": "IAM users to map into the aws-auth configmap",
+      "placeholder": "[\n  {\n    userarn  = \"arn:aws:iam::123456789012:user/admin\"\n    username = \"admin\"\n    groups   = [\"system:masters\"]\n  }\n]",
+      "rows": 8,
+      "advanced": true
+    }
+  ],
+  "common_inputs": {
+    "region": true,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/eks-{cluster_name}/terragrunt.hcl"
+}

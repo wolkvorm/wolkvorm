@@ -1,0 +1,73 @@
+{
+  "id": "ecr",
+  "name": "ECR Repository",
+  "description": "Amazon Elastic Container Registry for Docker images",
+  "provider": "aws",
+  "icon": "ecr",
+  "category": "compute",
+  "module": {
+    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-ecr.git//?ref=v2.2.0"
+  },
+  "inputs": [
+    {
+      "name": "repository_name",
+      "label": "Repository Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-app",
+      "description": "Name of the ECR repository"
+    },
+    {
+      "name": "repository_image_tag_mutability",
+      "label": "Tag Mutability",
+      "type": "select",
+      "default": "IMMUTABLE",
+      "options": ["IMMUTABLE", "MUTABLE"],
+      "description": "Image tag mutability setting"
+    },
+    {
+      "name": "repository_image_scan_on_push",
+      "label": "Scan on Push",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable image vulnerability scanning on push"
+    },
+    {
+      "name": "repository_encryption_type",
+      "label": "Encryption",
+      "type": "select",
+      "default": "AES256",
+      "options": ["AES256", "KMS"],
+      "description": "Encryption type for the repository"
+    },
+    {
+      "name": "repository_force_delete",
+      "label": "Force Delete",
+      "type": "boolean",
+      "default": false,
+      "description": "Allow deletion even with images present"
+    },
+    {
+      "name": "create_lifecycle_policy",
+      "label": "Create Lifecycle Policy",
+      "type": "boolean",
+      "default": false,
+      "advanced": true,
+      "description": "Create a lifecycle policy for automatic image cleanup"
+    },
+    {
+      "name": "create_repository_policy",
+      "label": "Create Repository Policy",
+      "type": "boolean",
+      "default": false,
+      "advanced": true,
+      "description": "Create a repository access policy"
+    }
+  ],
+  "common_inputs": {
+    "region": true,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/ecr-{repository_name}/terragrunt.hcl"
+}
