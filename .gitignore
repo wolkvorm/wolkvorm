@@ -1,0 +1,4 @@
+terragrunt-ui/backend/terragrunt-ui
+terragrunt-ui/test-run/
+**/.terragrunt-cache/
+**/*.tfstate*
