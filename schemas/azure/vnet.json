@@ -1,0 +1,70 @@
+{
+  "id": "azure-vnet",
+  "name": "Virtual Network",
+  "description": "Azure Virtual Network (VNet) for isolating and connecting Azure resources",
+  "provider": "azurerm",
+  "icon": "vnet",
+  "category": "networking",
+  "inputs": [
+    {
+      "name": "name",
+      "label": "VNet Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-vnet"
+    },
+    {
+      "name": "resource_group_name",
+      "label": "Resource Group",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-resource-group"
+    },
+    {
+      "name": "location",
+      "label": "Location",
+      "type": "select",
+      "required": true,
+      "options": [
+        "westeurope",
+        "northeurope",
+        "eastus",
+        "eastus2",
+        "westus2",
+        "centralus",
+        "southeastasia",
+        "eastasia",
+        "japaneast",
+        "australiaeast",
+        "uksouth"
+      ],
+      "default": "westeurope"
+    },
+    {
+      "name": "address_space",
+      "label": "Address Space",
+      "type": "list",
+      "required": true,
+      "placeholder": "10.0.0.0/16",
+      "description": "One CIDR block per line"
+    },
+    {
+      "name": "dns_servers",
+      "label": "DNS Servers",
+      "type": "list",
+      "required": false,
+      "placeholder": "8.8.8.8\n8.8.4.4",
+      "description": "Custom DNS server IPs (one per line)",
+      "advanced": true
+    }
+  ],
+  "common_inputs": {
+    "region": false,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/azure-vnet-{name}/main.tf",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/azure/vnet?ref=main"
+  }
+}

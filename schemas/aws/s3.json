@@ -1,0 +1,180 @@
+{
+  "id": "s3",
+  "name": "S3 Bucket",
+  "description": "Amazon Simple Storage Service bucket for object storage",
+  "provider": "aws",
+  "icon": "s3",
+  "category": "storage",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/s3?ref=main"
+  },
+  "inputs": [
+    {
+      "name": "bucket",
+      "label": "Bucket Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-app-bucket",
+      "description": "Globally unique name for the S3 bucket"
+    },
+    {
+      "name": "acl",
+      "label": "ACL",
+      "type": "select",
+      "options": [
+        "private",
+        "public-read",
+        "public-read-write",
+        "authenticated-read",
+        "log-delivery-write"
+      ],
+      "description": "Canned ACL to apply (requires Object Ownership to be BucketOwnerPreferred)",
+      "placeholder": "None (recommended)",
+      "advanced": true
+    },
+    {
+      "name": "force_destroy",
+      "label": "Force Destroy",
+      "type": "boolean",
+      "default": false,
+      "description": "Delete all objects when destroying the bucket"
+    },
+    {
+      "name": "object_ownership",
+      "label": "Object Ownership",
+      "type": "select",
+      "default": "BucketOwnerEnforced",
+      "options": [
+        "BucketOwnerEnforced",
+        "BucketOwnerPreferred",
+        "ObjectWriter"
+      ],
+      "description": "Object ownership setting (BucketOwnerEnforced disables ACLs)"
+    },
+    {
+      "name": "control_object_ownership",
+      "label": "Control Object Ownership",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable S3 Bucket Ownership Controls"
+    },
+    {
+      "name": "block_public_acls",
+      "label": "Block Public ACLs",
+      "type": "boolean",
+      "default": true,
+      "description": "Block public ACLs for this bucket",
+      "advanced": true
+    },
+    {
+      "name": "block_public_policy",
+      "label": "Block Public Policy",
+      "type": "boolean",
+      "default": true,
+      "description": "Block public bucket policies",
+      "advanced": true
+    },
+    {
+      "name": "ignore_public_acls",
+      "label": "Ignore Public ACLs",
+      "type": "boolean",
+      "default": true,
+      "description": "Ignore public ACLs on this bucket",
+      "advanced": true
+    },
+    {
+      "name": "restrict_public_buckets",
+      "label": "Restrict Public Buckets",
+      "type": "boolean",
+      "default": true,
+      "description": "Restrict public bucket policies",
+      "advanced": true
+    },
+    {
+      "name": "attach_deny_insecure_transport_policy",
+      "label": "Deny Insecure Transport",
+      "type": "boolean",
+      "default": false,
+      "description": "Attach policy to deny non-SSL (HTTP) requests",
+      "advanced": true
+    },
+    {
+      "name": "attach_require_latest_tls_policy",
+      "label": "Require Latest TLS",
+      "type": "boolean",
+      "default": false,
+      "description": "Require the latest version of TLS",
+      "advanced": true
+    },
+    {
+      "name": "attach_elb_log_delivery_policy",
+      "label": "ELB Log Delivery",
+      "type": "boolean",
+      "default": false,
+      "description": "Attach ELB log delivery policy",
+      "advanced": true
+    },
+    {
+      "name": "attach_lb_log_delivery_policy",
+      "label": "ALB/NLB Log Delivery",
+      "type": "boolean",
+      "default": false,
+      "description": "Attach ALB/NLB log delivery policy",
+      "advanced": true
+    },
+    {
+      "name": "attach_access_log_delivery_policy",
+      "label": "S3 Access Log Delivery",
+      "type": "boolean",
+      "default": false,
+      "description": "Attach S3 access log delivery policy",
+      "advanced": true
+    },
+    {
+      "name": "attach_cloudtrail_log_delivery_policy",
+      "label": "CloudTrail Log Delivery",
+      "type": "boolean",
+      "default": false,
+      "description": "Attach CloudTrail log delivery policy",
+      "advanced": true
+    },
+    {
+      "name": "acceleration_status",
+      "label": "Transfer Acceleration",
+      "type": "select",
+      "options": [
+        "Enabled",
+        "Suspended"
+      ],
+      "description": "Enable S3 Transfer Acceleration",
+      "placeholder": "Not configured",
+      "advanced": true
+    },
+    {
+      "name": "request_payer",
+      "label": "Request Payer",
+      "type": "select",
+      "default": "BucketOwner",
+      "options": [
+        "BucketOwner",
+        "Requester"
+      ],
+      "description": "Who pays for data transfer costs",
+      "advanced": true
+    },
+    {
+      "name": "object_lock_enabled",
+      "label": "Object Lock",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable S3 Object Lock (WORM protection)",
+      "advanced": true
+    }
+  ],
+  "common_inputs": {
+    "region": true,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/s3-{bucket}/main.tf"
+}

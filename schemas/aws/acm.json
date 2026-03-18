@@ -1,0 +1,52 @@
+{
+  "id": "acm",
+  "name": "ACM Certificate",
+  "description": "AWS Certificate Manager SSL/TLS certificate",
+  "provider": "aws",
+  "icon": "acm",
+  "category": "security",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/acm?ref=main"
+  },
+  "inputs": [
+    {
+      "name": "domain_name",
+      "label": "Domain Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "example.com",
+      "description": "Primary domain name for the certificate"
+    },
+    {
+      "name": "subject_alternative_names",
+      "label": "Alternative Names",
+      "type": "string",
+      "placeholder": "*.example.com,app.example.com",
+      "description": "Comma-separated subject alternative names"
+    },
+    {
+      "name": "validation_method",
+      "label": "Validation Method",
+      "type": "select",
+      "default": "DNS",
+      "options": [
+        "DNS",
+        "EMAIL"
+      ],
+      "description": "How to validate domain ownership"
+    },
+    {
+      "name": "wait_for_validation",
+      "label": "Wait for Validation",
+      "type": "boolean",
+      "default": true,
+      "description": "Wait until certificate is validated"
+    }
+  ],
+  "common_inputs": {
+    "region": true,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/acm-{domain_name}/main.tf"
+}

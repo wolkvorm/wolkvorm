@@ -1,0 +1,77 @@
+{
+  "id": "cloudfront",
+  "name": "CloudFront Distribution",
+  "description": "Amazon CloudFront CDN distribution for content delivery",
+  "provider": "aws",
+  "icon": "cloudfront",
+  "category": "networking",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/cloudfront?ref=main"
+  },
+  "inputs": [
+    {
+      "name": "comment",
+      "label": "Distribution Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "My App CDN",
+      "description": "Comment/name for the distribution"
+    },
+    {
+      "name": "origin_domain_name",
+      "label": "Origin Domain",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-bucket.s3.amazonaws.com",
+      "description": "Domain name of the origin (S3 bucket, ALB, etc.)"
+    },
+    {
+      "name": "origin_id",
+      "label": "Origin ID",
+      "type": "string",
+      "required": true,
+      "placeholder": "myS3Origin",
+      "description": "Unique identifier for the origin"
+    },
+    {
+      "name": "enabled",
+      "label": "Enabled",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable the distribution"
+    },
+    {
+      "name": "is_ipv6_enabled",
+      "label": "IPv6 Enabled",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable IPv6 support"
+    },
+    {
+      "name": "default_root_object",
+      "label": "Default Root Object",
+      "type": "string",
+      "default": "index.html",
+      "placeholder": "index.html",
+      "description": "Object to return when root URL is requested"
+    },
+    {
+      "name": "price_class",
+      "label": "Price Class",
+      "type": "select",
+      "default": "PriceClass_100",
+      "options": [
+        "PriceClass_All",
+        "PriceClass_200",
+        "PriceClass_100"
+      ],
+      "description": "Price class for the distribution edge locations"
+    }
+  ],
+  "common_inputs": {
+    "region": true,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/cdn-{origin_id}/main.tf"
+}

@@ -1,0 +1,84 @@
+{
+  "id": "security-group",
+  "name": "Security Group",
+  "description": "AWS Security Group for network access control",
+  "provider": "aws",
+  "icon": "security-group",
+  "category": "networking",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/security-group?ref=main"
+  },
+  "inputs": [
+    {
+      "name": "name",
+      "label": "Security Group Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-app-sg",
+      "description": "Name of the security group"
+    },
+    {
+      "name": "description",
+      "label": "Description",
+      "type": "string",
+      "default": "Managed by Wolkvorm",
+      "placeholder": "Allow inbound traffic for web server",
+      "description": "Description of the security group"
+    },
+    {
+      "name": "vpc_id",
+      "label": "VPC ID",
+      "type": "string",
+      "required": true,
+      "placeholder": "vpc-0123456789abcdef0",
+      "description": "VPC ID where the security group will be created",
+      "aws_resource": "vpc"
+    },
+    {
+      "name": "ingress_with_cidr_blocks",
+      "label": "Inbound Rules",
+      "type": "sg_rules",
+      "default": [
+        {
+          "type": "HTTP",
+          "protocol": "tcp",
+          "from_port": 80,
+          "to_port": 80,
+          "cidr": "0.0.0.0/0",
+          "description": "HTTP"
+        },
+        {
+          "type": "HTTPS",
+          "protocol": "tcp",
+          "from_port": 443,
+          "to_port": 443,
+          "cidr": "0.0.0.0/0",
+          "description": "HTTPS"
+        }
+      ],
+      "description": "Inbound traffic rules"
+    },
+    {
+      "name": "egress_with_cidr_blocks",
+      "label": "Outbound Rules",
+      "type": "sg_rules",
+      "default": [
+        {
+          "type": "All traffic",
+          "protocol": "all",
+          "from_port": 0,
+          "to_port": 0,
+          "cidr": "0.0.0.0/0",
+          "description": "Allow all outbound"
+        }
+      ],
+      "description": "Outbound traffic rules"
+    }
+  ],
+  "common_inputs": {
+    "region": true,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/sg-{name}/main.tf"
+}

@@ -1,0 +1,68 @@
+{
+  "id": "gcp-vpc",
+  "name": "VPC Network",
+  "description": "Google Cloud VPC Network",
+  "provider": "google",
+  "icon": "vpc",
+  "category": "networking",
+  "inputs": [
+    {
+      "name": "name",
+      "label": "Network Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-vpc"
+    },
+    {
+      "name": "project",
+      "label": "Project ID",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-gcp-project"
+    },
+    {
+      "name": "auto_create_subnetworks",
+      "label": "Auto Create Subnetworks",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Disable to manage subnets manually"
+    },
+    {
+      "name": "routing_mode",
+      "label": "Routing Mode",
+      "type": "select",
+      "required": false,
+      "options": [
+        "REGIONAL",
+        "GLOBAL"
+      ],
+      "default": "REGIONAL"
+    },
+    {
+      "name": "description",
+      "label": "Description",
+      "type": "string",
+      "required": false,
+      "placeholder": "VPC for my project",
+      "advanced": true
+    },
+    {
+      "name": "delete_default_routes_on_create",
+      "label": "Delete Default Routes",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "advanced": true
+    }
+  ],
+  "common_inputs": {
+    "region": true,
+    "environment": true,
+    "tags": false
+  },
+  "path_template": "infra/{env}/gcp-vpc-{name}/main.tf",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/gcp/vpc?ref=main"
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "id": "eks",
+  "name": "EKS Cluster",
+  "description": "Amazon Elastic Kubernetes Service managed cluster",
+  "provider": "aws",
+  "icon": "eks",
+  "category": "containers",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/eks?ref=main"
+  },
+  "inputs": [
+    {
+      "name": "cluster_name",
+      "label": "Cluster Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-eks-cluster",
+      "description": "Name of the EKS cluster"
+    },
+    {
+      "name": "cluster_version",
+      "label": "Kubernetes Version",
+      "type": "select",
+      "default": "1.31",
+      "options": [
+        "1.33",
+        "1.32",
+        "1.31",
+        "1.30",
+        "1.29",
+        "1.28"
+      ],
+      "description": "Kubernetes version for the cluster"
+    },
+    {
+      "name": "vpc_id",
+      "label": "VPC ID",
+      "type": "string",
+      "required": true,
+      "placeholder": "vpc-0123456789abcdef0",
+      "aws_resource": "vpc"
+    },
+    {
+      "name": "subnet_ids",
+      "label": "Subnet IDs",
+      "type": "string",
+      "required": true,
+      "placeholder": "subnet-abc123,subnet-def456,subnet-ghi789",
+      "description": "Comma-separated subnet IDs for control plane and node groups",
+      "aws_resource": "subnet",
+      "multi": true
+    },
+    {
+      "name": "cluster_endpoint_public_access",
+      "label": "Public API Endpoint",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable public API server endpoint"
+    },
+    {
+      "name": "cluster_endpoint_private_access",
+      "label": "Private API Endpoint",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable private API server endpoint"
+    },
+    {
+      "name": "cluster_endpoint_public_access_cidrs",
+      "label": "Public Access CIDRs",
+      "type": "string",
+      "default": "0.0.0.0/0",
+      "placeholder": "0.0.0.0/0",
+      "description": "Comma-separated CIDRs that can access the public API endpoint"
+    },
+    {
+      "name": "node_group_name",
+      "label": "Node Group Name",
+      "type": "string",
+      "default": "main",
+      "description": "Name for the default node group",
+      "advanced": true
+    },
+    {
+      "name": "node_instance_types",
+      "label": "Node Instance Type",
+      "type": "select",
+      "default": "t3.medium",
+      "options": [
+        "t3.medium",
+        "t3.large",
+        "t3.xlarge",
+        "t3.2xlarge",
+        "m5.large",
+        "m5.xlarge",
+        "m5.2xlarge",
+        "m6i.large",
+        "m6i.xlarge",
+        "c5.large",
+        "c5.xlarge",
+        "r5.large",
+        "r5.xlarge"
+      ],
+      "description": "EC2 instance type for the node group"
+    },
+    {
+      "name": "node_min_size",
+      "label": "Node Min Size",
+      "type": "number",
+      "default": 1
+    },
+    {
+      "name": "node_max_size",
+      "label": "Node Max Size",
+      "type": "number",
+      "default": 3
+    },
+    {
+      "name": "node_desired_size",
+      "label": "Node Desired Size",
+      "type": "number",
+      "default": 2
+    },
+    {
+      "name": "node_disk_size",
+      "label": "Node Disk Size (GB)",
+      "type": "number",
+      "default": 20,
+      "advanced": true
+    },
+    {
+      "name": "node_capacity_type",
+      "label": "Capacity Type",
+      "type": "select",
+      "default": "ON_DEMAND",
+      "options": [
+        "ON_DEMAND",
+        "SPOT"
+      ],
+      "advanced": true
+    },
+    {
+      "name": "enable_cluster_creator_admin_permissions",
+      "label": "Creator Admin Access",
+      "type": "boolean",
+      "default": true,
+      "description": "Give cluster creator admin permissions",
+      "advanced": true
+    }
+  ],
+  "common_inputs": {
+    "region": true,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/eks-{cluster_name}/main.tf"
+}

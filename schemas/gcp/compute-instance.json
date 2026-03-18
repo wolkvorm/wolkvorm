@@ -1,0 +1,133 @@
+{
+  "id": "gcp-compute",
+  "name": "Compute Instance",
+  "description": "Google Cloud Compute Engine virtual machine instance",
+  "provider": "google",
+  "icon": "compute",
+  "category": "compute",
+  "inputs": [
+    {
+      "name": "name",
+      "label": "Instance Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-instance"
+    },
+    {
+      "name": "project",
+      "label": "Project ID",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-gcp-project"
+    },
+    {
+      "name": "zone",
+      "label": "Zone",
+      "type": "select",
+      "required": true,
+      "options": [
+        "europe-west1-b",
+        "europe-west1-c",
+        "europe-west1-d",
+        "europe-west4-a",
+        "us-central1-a",
+        "us-central1-b",
+        "us-east1-b",
+        "us-west1-a",
+        "asia-east1-a",
+        "asia-northeast1-a",
+        "australia-southeast1-a"
+      ],
+      "default": "europe-west1-b"
+    },
+    {
+      "name": "machine_type",
+      "label": "Machine Type",
+      "type": "select",
+      "required": true,
+      "options": [
+        "e2-micro",
+        "e2-small",
+        "e2-medium",
+        "e2-standard-2",
+        "e2-standard-4",
+        "e2-standard-8",
+        "n2-standard-2",
+        "n2-standard-4",
+        "n2-standard-8",
+        "c2-standard-4",
+        "c2-standard-8"
+      ],
+      "default": "e2-standard-2"
+    },
+    {
+      "name": "boot_disk_image",
+      "label": "Boot Disk Image",
+      "type": "select",
+      "required": false,
+      "options": [
+        "debian-cloud/debian-12",
+        "ubuntu-os-cloud/ubuntu-2404-lts",
+        "ubuntu-os-cloud/ubuntu-2204-lts",
+        "centos-cloud/centos-stream-9",
+        "rocky-linux-cloud/rocky-linux-9",
+        "cos-cloud/cos-stable"
+      ],
+      "default": "debian-cloud/debian-12"
+    },
+    {
+      "name": "boot_disk_size",
+      "label": "Boot Disk Size (GB)",
+      "type": "number",
+      "required": false,
+      "default": 50
+    },
+    {
+      "name": "boot_disk_type",
+      "label": "Boot Disk Type",
+      "type": "select",
+      "required": false,
+      "options": [
+        "pd-standard",
+        "pd-balanced",
+        "pd-ssd",
+        "pd-extreme"
+      ],
+      "default": "pd-balanced",
+      "advanced": true
+    },
+    {
+      "name": "network",
+      "label": "Network",
+      "type": "string",
+      "required": false,
+      "placeholder": "default",
+      "default": "default"
+    },
+    {
+      "name": "subnetwork",
+      "label": "Subnetwork",
+      "type": "string",
+      "required": false,
+      "placeholder": "default",
+      "advanced": true
+    },
+    {
+      "name": "allow_stopping_for_update",
+      "label": "Allow Stop for Update",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "advanced": true
+    }
+  ],
+  "common_inputs": {
+    "region": false,
+    "environment": true,
+    "tags": false
+  },
+  "path_template": "infra/{env}/gcp-compute-{name}/main.tf",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/gcp/compute-instance?ref=main"
+  }
+}

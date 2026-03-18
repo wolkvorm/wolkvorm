@@ -1,0 +1,62 @@
+{
+  "id": "sqs",
+  "name": "SQS Queue",
+  "description": "Amazon Simple Queue Service for message queuing",
+  "provider": "aws",
+  "icon": "sqs",
+  "category": "messaging",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/sqs?ref=main"
+  },
+  "inputs": [
+    {
+      "name": "name",
+      "label": "Queue Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-app-queue",
+      "description": "Name of the SQS queue"
+    },
+    {
+      "name": "fifo_queue",
+      "label": "FIFO Queue",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable FIFO (first-in-first-out) queue"
+    },
+    {
+      "name": "visibility_timeout_seconds",
+      "label": "Visibility Timeout (s)",
+      "type": "number",
+      "default": 30,
+      "description": "Time a message is invisible after being received"
+    },
+    {
+      "name": "message_retention_seconds",
+      "label": "Retention Period (s)",
+      "type": "number",
+      "default": 345600,
+      "description": "How long messages are retained (default 4 days)"
+    },
+    {
+      "name": "max_message_size",
+      "label": "Max Message Size (bytes)",
+      "type": "number",
+      "default": 262144,
+      "description": "Maximum message size in bytes (max 256KB)"
+    },
+    {
+      "name": "delay_seconds",
+      "label": "Delivery Delay (s)",
+      "type": "number",
+      "default": 0,
+      "description": "Delay before message becomes visible"
+    }
+  ],
+  "common_inputs": {
+    "region": true,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/sqs-{name}/main.tf"
+}

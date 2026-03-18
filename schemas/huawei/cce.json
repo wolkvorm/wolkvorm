@@ -1,0 +1,118 @@
+{
+  "id": "huawei-cce",
+  "name": "CCE Cluster",
+  "description": "Huawei Cloud Container Engine managed Kubernetes cluster",
+  "provider": "huaweicloud",
+  "icon": "kubernetes",
+  "category": "containers",
+  "inputs": [
+    {
+      "name": "name",
+      "label": "Cluster Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-cce-cluster"
+    },
+    {
+      "name": "region",
+      "label": "Region",
+      "type": "select",
+      "required": true,
+      "options": [
+        "cn-north-4",
+        "cn-east-3",
+        "cn-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "eu-west-101",
+        "la-south-2"
+      ],
+      "default": "ap-southeast-1"
+    },
+    {
+      "name": "flavor_id",
+      "label": "Cluster Flavor",
+      "type": "select",
+      "required": true,
+      "options": [
+        "cce.s1.small",
+        "cce.s1.medium",
+        "cce.s2.small",
+        "cce.s2.medium",
+        "cce.s2.large",
+        "cce.s2.xlarge"
+      ],
+      "default": "cce.s1.small",
+      "description": "Determines master node specs and max worker nodes"
+    },
+    {
+      "name": "cluster_type",
+      "label": "Cluster Type",
+      "type": "select",
+      "required": false,
+      "options": [
+        "VirtualMachine",
+        "BareMetal"
+      ],
+      "default": "VirtualMachine"
+    },
+    {
+      "name": "cluster_version",
+      "label": "Kubernetes Version",
+      "type": "select",
+      "required": false,
+      "options": [
+        "v1.31",
+        "v1.30",
+        "v1.29",
+        "v1.28"
+      ],
+      "default": "v1.31"
+    },
+    {
+      "name": "vpc_id",
+      "label": "VPC ID",
+      "type": "string",
+      "required": true,
+      "placeholder": "vpc-xxxxx"
+    },
+    {
+      "name": "subnet_id",
+      "label": "Subnet ID",
+      "type": "string",
+      "required": true,
+      "placeholder": "subnet-xxxxx"
+    },
+    {
+      "name": "container_network_type",
+      "label": "Container Network Type",
+      "type": "select",
+      "required": false,
+      "options": [
+        "overlay_l2",
+        "vpc-router",
+        "eni"
+      ],
+      "default": "overlay_l2",
+      "advanced": true
+    },
+    {
+      "name": "delete_all",
+      "label": "Delete All Resources on Destroy",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "advanced": true
+    }
+  ],
+  "common_inputs": {
+    "region": false,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/huawei-cce-{name}/main.tf",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/huawei/cce?ref=main"
+  }
+}
