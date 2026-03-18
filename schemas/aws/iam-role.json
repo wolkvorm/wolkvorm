@@ -10,7 +10,7 @@
   },
   "inputs": [
     {
-      "name": "role_name",
+      "name": "name",
       "label": "Role Name",
       "type": "string",
       "required": true,
@@ -18,26 +18,11 @@
       "description": "Name of the IAM role"
     },
     {
-      "name": "trusted_role_services",
-      "label": "Trusted Services",
-      "type": "string",
-      "default": "ec2.amazonaws.com",
-      "placeholder": "ec2.amazonaws.com,lambda.amazonaws.com",
-      "description": "Comma-separated AWS services that can assume this role"
-    },
-    {
-      "name": "custom_role_policy_arns",
+      "name": "policies",
       "label": "Policy ARNs",
       "type": "multiline",
       "placeholder": "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess\narn:aws:iam::aws:policy/CloudWatchLogsFullAccess",
       "description": "One policy ARN per line to attach to this role"
-    },
-    {
-      "name": "role_requires_mfa",
-      "label": "Require MFA",
-      "type": "boolean",
-      "default": false,
-      "description": "Whether the role requires MFA"
     },
     {
       "name": "create_instance_profile",

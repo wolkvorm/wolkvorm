@@ -37,35 +37,11 @@
       "description": "Attribute name for the partition key"
     },
     {
-      "name": "hash_key_type",
-      "label": "Partition Key Type",
-      "type": "select",
-      "default": "S",
-      "options": [
-        "S",
-        "N",
-        "B"
-      ],
-      "description": "Type of the partition key (S=String, N=Number, B=Binary)"
-    },
-    {
       "name": "range_key",
       "label": "Sort Key (optional)",
       "type": "string",
       "placeholder": "timestamp",
       "description": "Attribute name for the sort key"
-    },
-    {
-      "name": "range_key_type",
-      "label": "Sort Key Type",
-      "type": "select",
-      "default": "S",
-      "options": [
-        "S",
-        "N",
-        "B"
-      ],
-      "description": "Type of the sort key"
     },
     {
       "name": "point_in_time_recovery_enabled",

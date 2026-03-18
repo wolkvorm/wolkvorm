@@ -34,21 +34,6 @@
       "type": "string",
       "placeholder": "My HTTP API",
       "description": "Description of the API"
-    },
-    {
-      "name": "cors_allow_origins",
-      "label": "CORS Origins",
-      "type": "string",
-      "default": "*",
-      "placeholder": "https://example.com",
-      "description": "Allowed CORS origins (comma-separated)"
-    },
-    {
-      "name": "cors_allow_methods",
-      "label": "CORS Methods",
-      "type": "string",
-      "default": "GET,POST,PUT,DELETE,OPTIONS",
-      "description": "Allowed CORS methods (comma-separated)"
     }
   ],
   "common_inputs": {

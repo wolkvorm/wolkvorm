@@ -114,38 +114,6 @@
       "description": "Startup script to run when the instance launches"
     },
     {
-      "name": "root_block_device_size",
-      "label": "Root Volume Size (GB)",
-      "type": "number",
-      "default": 20,
-      "description": "Size of the root EBS volume in GB",
-      "advanced": true
-    },
-    {
-      "name": "root_block_device_type",
-      "label": "Root Volume Type",
-      "type": "select",
-      "default": "gp3",
-      "options": [
-        "gp3",
-        "gp2",
-        "io1",
-        "io2",
-        "st1",
-        "sc1"
-      ],
-      "description": "Type of the root EBS volume",
-      "advanced": true
-    },
-    {
-      "name": "root_block_device_encrypted",
-      "label": "Encrypt Root Volume",
-      "type": "boolean",
-      "default": true,
-      "description": "Enable encryption for the root volume",
-      "advanced": true
-    },
-    {
       "name": "ebs_optimized",
       "label": "EBS Optimized",
       "type": "boolean",

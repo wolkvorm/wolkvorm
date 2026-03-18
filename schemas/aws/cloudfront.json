@@ -18,22 +18,6 @@
       "description": "Comment/name for the distribution"
     },
     {
-      "name": "origin_domain_name",
-      "label": "Origin Domain",
-      "type": "string",
-      "required": true,
-      "placeholder": "my-bucket.s3.amazonaws.com",
-      "description": "Domain name of the origin (S3 bucket, ALB, etc.)"
-    },
-    {
-      "name": "origin_id",
-      "label": "Origin ID",
-      "type": "string",
-      "required": true,
-      "placeholder": "myS3Origin",
-      "description": "Unique identifier for the origin"
-    },
-    {
       "name": "enabled",
       "label": "Enabled",
       "type": "boolean",

@@ -10,7 +10,7 @@
   },
   "inputs": [
     {
-      "name": "zone_name",
+      "name": "name",
       "label": "Domain Name",
       "type": "string",
       "required": true,

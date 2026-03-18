@@ -16,20 +16,6 @@
       "required": true,
       "placeholder": "my-ecs-cluster",
       "description": "Name of the ECS cluster"
-    },
-    {
-      "name": "fargate_capacity_providers_enabled",
-      "label": "Fargate Enabled",
-      "type": "boolean",
-      "default": true,
-      "description": "Enable Fargate capacity provider"
-    },
-    {
-      "name": "container_insights",
-      "label": "Container Insights",
-      "type": "boolean",
-      "default": true,
-      "description": "Enable CloudWatch Container Insights"
     }
   ],
   "common_inputs": {
