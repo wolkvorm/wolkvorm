@@ -6,7 +6,7 @@
   "icon": "alb",
   "category": "networking",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//aws/alb?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terragrunt-ui/modules/aws/alb?ref=main"
   },
   "inputs": [
     {

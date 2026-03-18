@@ -6,7 +6,7 @@
   "icon": "acm",
   "category": "security",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//aws/acm?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terragrunt-ui/modules/aws/acm?ref=main"
   },
   "inputs": [
     {

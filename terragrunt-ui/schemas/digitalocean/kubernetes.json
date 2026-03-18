@@ -121,6 +121,6 @@
   },
   "path_template": "infra/{env}/do-k8s-{name}/main.tf",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//digitalocean/kubernetes?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terragrunt-ui/modules/digitalocean/kubernetes?ref=main"
   }
 }

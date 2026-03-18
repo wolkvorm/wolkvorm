@@ -6,7 +6,7 @@
   "icon": "lambda",
   "category": "compute",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//aws/lambda?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terragrunt-ui/modules/aws/lambda?ref=main"
   },
   "inputs": [
     {

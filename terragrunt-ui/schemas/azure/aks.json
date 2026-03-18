@@ -144,6 +144,6 @@
   },
   "path_template": "infra/{env}/azure-aks-{name}/main.tf",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//azure/aks?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terragrunt-ui/modules/azure/aks?ref=main"
   }
 }

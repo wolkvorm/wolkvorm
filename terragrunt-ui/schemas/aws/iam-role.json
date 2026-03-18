@@ -6,7 +6,7 @@
   "icon": "iam",
   "category": "security",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//aws/iam-role?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terragrunt-ui/modules/aws/iam-role?ref=main"
   },
   "inputs": [
     {

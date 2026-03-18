@@ -6,7 +6,7 @@
   "icon": "rds",
   "category": "database",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//aws/rds?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terragrunt-ui/modules/aws/rds?ref=main"
   },
   "inputs": [
     {

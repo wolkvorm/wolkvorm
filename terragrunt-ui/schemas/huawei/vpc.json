@@ -54,6 +54,6 @@
   },
   "path_template": "infra/{env}/huawei-vpc-{name}/main.tf",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//huawei/vpc?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terragrunt-ui/modules/huawei/vpc?ref=main"
   }
 }

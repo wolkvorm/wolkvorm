@@ -113,6 +113,6 @@
   },
   "path_template": "infra/{env}/huawei-cce-{name}/main.tf",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//huawei/cce?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terragrunt-ui/modules/huawei/cce?ref=main"
   }
 }

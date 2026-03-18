@@ -88,6 +88,6 @@
   },
   "path_template": "infra/{env}/huawei-obs-{bucket}/main.tf",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//huawei/obs?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terragrunt-ui/modules/huawei/obs?ref=main"
   }
 }

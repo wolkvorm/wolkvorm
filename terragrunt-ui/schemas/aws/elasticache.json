@@ -6,7 +6,7 @@
   "icon": "elasticache",
   "category": "database",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//aws/elasticache?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terragrunt-ui/modules/aws/elasticache?ref=main"
   },
   "inputs": [
     {

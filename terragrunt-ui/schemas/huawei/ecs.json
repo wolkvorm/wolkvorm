@@ -133,6 +133,6 @@
   },
   "path_template": "infra/{env}/huawei-ecs-{name}/main.tf",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//huawei/ecs?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terragrunt-ui/modules/huawei/ecs?ref=main"
   }
 }

@@ -6,7 +6,7 @@
   "icon": "s3",
   "category": "storage",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//aws/s3?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terragrunt-ui/modules/aws/s3?ref=main"
   },
   "inputs": [
     {

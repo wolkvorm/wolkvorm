@@ -6,7 +6,7 @@
   "icon": "ecs",
   "category": "compute",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//aws/ecs?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terragrunt-ui/modules/aws/ecs?ref=main"
   },
   "inputs": [
     {

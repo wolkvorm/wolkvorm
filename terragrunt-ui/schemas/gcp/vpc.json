@@ -63,6 +63,6 @@
   },
   "path_template": "infra/{env}/gcp-vpc-{name}/main.tf",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//gcp/vpc?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terragrunt-ui/modules/gcp/vpc?ref=main"
   }
 }
