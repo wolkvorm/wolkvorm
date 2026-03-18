@@ -1,0 +1,150 @@
+{
+  "id": "azure-postgresql",
+  "name": "PostgreSQL Flexible Server",
+  "description": "Azure Database for PostgreSQL Flexible Server",
+  "provider": "azurerm",
+  "icon": "database",
+  "category": "database",
+  "inputs": [
+    {
+      "name": "name",
+      "label": "Server Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-postgres-server",
+      "description": "Globally unique PostgreSQL server name"
+    },
+    {
+      "name": "resource_group_name",
+      "label": "Resource Group",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-resource-group"
+    },
+    {
+      "name": "location",
+      "label": "Location",
+      "type": "select",
+      "required": true,
+      "options": [
+        "westeurope",
+        "northeurope",
+        "eastus",
+        "eastus2",
+        "westus2",
+        "centralus",
+        "southeastasia",
+        "japaneast",
+        "australiaeast",
+        "uksouth"
+      ],
+      "default": "westeurope"
+    },
+    {
+      "name": "administrator_login",
+      "label": "Admin Username",
+      "type": "string",
+      "required": true,
+      "placeholder": "psqladmin",
+      "default": "psqladmin"
+    },
+    {
+      "name": "administrator_password",
+      "label": "Admin Password",
+      "type": "string",
+      "required": true,
+      "placeholder": "StrongPassword123!"
+    },
+    {
+      "name": "version",
+      "label": "PostgreSQL Version",
+      "type": "select",
+      "required": false,
+      "options": [
+        "16",
+        "15",
+        "14",
+        "13",
+        "12"
+      ],
+      "default": "16"
+    },
+    {
+      "name": "sku_name",
+      "label": "SKU (Instance Type)",
+      "type": "select",
+      "required": false,
+      "options": [
+        "B_Standard_B1ms",
+        "B_Standard_B2ms",
+        "GP_Standard_D2s_v3",
+        "GP_Standard_D4s_v3",
+        "GP_Standard_D8s_v3",
+        "MO_Standard_E4ds_v4",
+        "MO_Standard_E8ds_v4"
+      ],
+      "default": "GP_Standard_D2s_v3"
+    },
+    {
+      "name": "storage_mb",
+      "label": "Storage (MB)",
+      "type": "select",
+      "required": false,
+      "options": [
+        "32768",
+        "65536",
+        "131072",
+        "262144",
+        "524288",
+        "1048576"
+      ],
+      "default": "32768"
+    },
+    {
+      "name": "backup_retention_days",
+      "label": "Backup Retention (Days)",
+      "type": "number",
+      "required": false,
+      "default": 7,
+      "advanced": true
+    },
+    {
+      "name": "geo_redundant_backup_enabled",
+      "label": "Geo-Redundant Backup",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "advanced": true
+    },
+    {
+      "name": "auto_grow_enabled",
+      "label": "Storage Auto Grow",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "advanced": true
+    },
+    {
+      "name": "zone",
+      "label": "Availability Zone",
+      "type": "select",
+      "required": false,
+      "options": [
+        "1",
+        "2",
+        "3"
+      ],
+      "default": "1",
+      "advanced": true
+    }
+  ],
+  "common_inputs": {
+    "region": false,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/azure-postgresql-{name}/main.tf",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/azure/postgresql?ref=main"
+  }
+}

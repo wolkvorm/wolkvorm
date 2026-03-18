@@ -6,7 +6,7 @@
   "icon": "key-pair",
   "category": "compute",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-key-pair.git//?ref=v2.0.3"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/key-pair?ref=main"
   },
   "inputs": [
     {
@@ -38,5 +38,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/key-pair-{key_name}/terragrunt.hcl"
+  "path_template": "infra/{env}/key-pair-{key_name}/main.tf"
 }

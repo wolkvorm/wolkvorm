@@ -1,0 +1,101 @@
+{
+  "id": "gcp-storage",
+  "name": "Cloud Storage Bucket",
+  "description": "Google Cloud Storage bucket for object storage",
+  "provider": "google",
+  "icon": "storage",
+  "category": "storage",
+  "inputs": [
+    {
+      "name": "name",
+      "label": "Bucket Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-project-data",
+      "description": "Globally unique bucket name"
+    },
+    {
+      "name": "project",
+      "label": "Project ID",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-gcp-project"
+    },
+    {
+      "name": "location",
+      "label": "Location",
+      "type": "select",
+      "required": true,
+      "options": [
+        "EU",
+        "US",
+        "ASIA",
+        "europe-west1",
+        "europe-west4",
+        "us-central1",
+        "us-east1",
+        "asia-east1"
+      ],
+      "default": "EU"
+    },
+    {
+      "name": "storage_class",
+      "label": "Storage Class",
+      "type": "select",
+      "required": false,
+      "options": [
+        "STANDARD",
+        "NEARLINE",
+        "COLDLINE",
+        "ARCHIVE"
+      ],
+      "default": "STANDARD"
+    },
+    {
+      "name": "uniform_bucket_level_access",
+      "label": "Uniform Bucket-Level Access",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Recommended for simplified access control"
+    },
+    {
+      "name": "force_destroy",
+      "label": "Force Destroy",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Allow deletion even if bucket is not empty",
+      "advanced": true
+    },
+    {
+      "name": "versioning_enabled",
+      "label": "Enable Versioning",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "advanced": true
+    },
+    {
+      "name": "public_access_prevention",
+      "label": "Public Access Prevention",
+      "type": "select",
+      "required": false,
+      "options": [
+        "enforced",
+        "inherited"
+      ],
+      "default": "enforced",
+      "advanced": true
+    }
+  ],
+  "common_inputs": {
+    "region": false,
+    "environment": true,
+    "tags": false
+  },
+  "path_template": "infra/{env}/gcp-storage-{name}/main.tf",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/gcp/cloud-storage?ref=main"
+  }
+}

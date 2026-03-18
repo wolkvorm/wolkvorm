@@ -6,7 +6,7 @@
   "icon": "vpc",
   "category": "networking",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-vpc.git//?ref=v5.16.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/vpc?ref=main"
   },
   "inputs": [
     {
@@ -169,7 +169,10 @@
       "label": "Instance Tenancy",
       "type": "select",
       "default": "default",
-      "options": ["default", "dedicated"],
+      "options": [
+        "default",
+        "dedicated"
+      ],
       "description": "Tenancy option for instances launched in the VPC",
       "advanced": true
     },
@@ -203,5 +206,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/vpc-{name}/terragrunt.hcl"
+  "path_template": "infra/{env}/vpc-{name}/main.tf"
 }

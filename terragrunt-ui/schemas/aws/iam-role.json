@@ -6,7 +6,7 @@
   "icon": "iam",
   "category": "security",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-iam.git//modules/iam-assumable-role?ref=v5.37.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/iam-role?ref=main"
   },
   "inputs": [
     {
@@ -52,5 +52,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/iam-{role_name}/terragrunt.hcl"
+  "path_template": "infra/{env}/iam-{role_name}/main.tf"
 }

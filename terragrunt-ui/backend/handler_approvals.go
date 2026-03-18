@@ -115,9 +115,9 @@ func approvalActionHandler(w http.ResponseWriter, r *http.Request) {
 			json.Unmarshal([]byte(approval.InputsJSON), &inputs)
 		}
 
-		tgCmd := "terragrunt apply -auto-approve"
+		tgCmd := "terraform apply -auto-approve"
 		if approval.Action == "destroy" {
-			tgCmd = "terragrunt destroy -auto-approve"
+			tgCmd = "terraform destroy -auto-approve"
 		}
 
 		go func() {

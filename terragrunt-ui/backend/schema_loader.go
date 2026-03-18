@@ -20,12 +20,14 @@ type SchemaInput struct {
 	Options     []string `json:"options,omitempty"`
 	Advanced    bool     `json:"advanced,omitempty"`
 	AWSResource string   `json:"aws_resource,omitempty"` // vpc, subnet, security-group, key-pair, ami
-	Multi       bool     `json:"multi,omitempty"`         // true for multi-select fields
+	Multi       bool     `json:"multi,omitempty"`        // true for multi-select fields
+	Block       string   `json:"block,omitempty"`        // if set, field is nested inside a HCL block of this name
 }
 
 // SchemaModule holds the Terraform module source info.
 type SchemaModule struct {
-	Source string `json:"source"`
+	Source  string `json:"source"`
+	Version string `json:"version,omitempty"`
 }
 
 // SchemaCommonInputs flags for region/environment/tags.
@@ -44,6 +46,7 @@ type ResourceSchema struct {
 	Icon         string             `json:"icon"`
 	Category     string             `json:"category"`
 	Module       SchemaModule       `json:"module"`
+	ResourceType string             `json:"resource_type,omitempty"` // if set, generates a resource block instead of a module block
 	Inputs       []SchemaInput      `json:"inputs"`
 	CommonInputs SchemaCommonInputs `json:"common_inputs"`
 	PathTemplate string             `json:"path_template"`

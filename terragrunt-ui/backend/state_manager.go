@@ -88,8 +88,8 @@ func EnsureStateBucket(region string) (*StateBackendInfo, error) {
 		return nil, err
 	}
 
-	bucketName := fmt.Sprintf("grandform-state-%s", accountID)
-	lockTable := "grandform-locks"
+	bucketName := fmt.Sprintf("wolkvorm-state-%s", accountID)
+	lockTable := "wolkvorm-locks"
 
 	// Check/create S3 bucket
 	s3Client := s3.NewFromConfig(cfg)

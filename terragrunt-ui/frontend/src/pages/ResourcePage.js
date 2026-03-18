@@ -3,6 +3,7 @@ import { useParams, useSearchParams, Link } from "react-router-dom";
 import DynamicForm from "../components/DynamicForm";
 import PlanModal from "../components/PlanModal";
 import PRButton from "../components/PRButton";
+import ConfirmModal from "../components/ConfirmModal";
 import { useTheme } from "../contexts/ThemeContext";
 
 import { API, WS_API, authFetch, getToken } from "../config";
@@ -31,6 +32,7 @@ function ResourcePage() {
   const [costEstimate, setCostEstimate] = useState(null);
   const [costLoading, setCostLoading] = useState(false);
   const [editingResource, setEditingResource] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null); // { action, inputs, region, env }
   const wsRef = useRef(null);
 
   // Load default region from settings
@@ -42,7 +44,7 @@ function ResourcePage() {
           setRegion(data.aws.default_region);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Load existing resource data if in edit mode
@@ -88,7 +90,7 @@ function ResourcePage() {
     authFetch(`${API}/api/plan/history?schemaId=${id}`)
       .then((res) => res.json())
       .then((data) => setPlanHistory(Array.isArray(data) ? data : []))
-      .catch(() => {});
+      .catch(() => { });
   }, [id]);
 
   useEffect(() => {
@@ -124,14 +126,16 @@ function ResourcePage() {
     if (action === "plan" || action === "apply" || action === "destroy") {
       const titles = { plan: "Terraform Plan", apply: "Terraform Apply", destroy: "Terraform Destroy" };
 
-      if (action === "apply" && !window.confirm("Are you sure you want to run terragrunt apply? This will make real changes to your infrastructure.")) {
+      if (action === "apply") {
+        setConfirmAction({ action, inputs, region: r, env: e });
         return;
       }
-      if (action === "destroy" && !window.confirm("WARNING: This will DESTROY your infrastructure resources. This action cannot be undone. Are you sure?")) {
+      if (action === "destroy") {
+        setConfirmAction({ action, inputs, region: r, env: e });
         return;
       }
 
-      setLogs(`Starting terragrunt ${action}...\n`);
+      setLogs(`Starting terraform ${action}...\n`);
       setPlanModalTitle(titles[action]);
       setShowPlan(true);
       setIsRunning(true);
@@ -154,6 +158,7 @@ function ResourcePage() {
             region: r,
             env: e,
             action,
+            ...(editResourceId && { resourceId: editResourceId }),
           }));
         };
 
@@ -176,7 +181,7 @@ function ResourcePage() {
         ws.onerror = () => {
           // Fallback to HTTP polling if WebSocket fails
           console.warn("WebSocket failed, falling back to HTTP polling");
-          setLogs(`Starting terragrunt ${action} (polling mode)...\n`);
+          setLogs(`Starting terraform ${action} (polling mode)...\n`);
 
           const endpoints = { plan: `${API}/api/plan`, apply: `${API}/api/apply`, destroy: `${API}/api/destroy` };
           authFetch(endpoints[action], {
@@ -221,6 +226,77 @@ function ResourcePage() {
         const interval = setInterval(fetchLogs, 2000);
         setTimeout(() => { clearInterval(interval); setIsRunning(false); }, 300000);
       }
+    }
+  };
+
+  const handleDownloadOutputs = () => {
+    if (!editingResource || !editingResource.outputs || Object.keys(editingResource.outputs).length === 0) {
+      alert("No outputs found for this resource.");
+      return;
+    }
+
+    if (editingResource.outputs.private_key_pem) {
+      const blob = new Blob([editingResource.outputs.private_key_pem], { type: "application/x-pem-file" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${editingResource.name}.pem`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      const blob = new Blob([JSON.stringify(editingResource.outputs, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${editingResource.name}-outputs.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  const handleConfirmAction = () => {
+    if (!confirmAction) return;
+    const { action, inputs, region: r, env: e } = confirmAction;
+    setConfirmAction(null);
+
+    const titles = { plan: "Terraform Plan", apply: "Terraform Apply", destroy: "Terraform Destroy" };
+    setLogs(`Starting terraform ${action}...\n`);
+    setPlanModalTitle(titles[action]);
+    setShowPlan(true);
+    setIsRunning(true);
+
+    if (wsRef.current) wsRef.current.close();
+
+    try {
+      const token = getToken();
+      const wsUrl = token ? `${WS_API}/api/ws/run?token=${token}` : `${WS_API}/api/ws/run`;
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ schemaId: id, inputs, region: r, env: e, action, ...(editResourceId && { resourceId: editResourceId }) }));
+      };
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        if (msg.type === "log") { setLogs(p => p + msg.data + "\n"); }
+        else if (msg.type === "done") { setIsRunning(false); fetchHistory(); }
+        else if (msg.type === "approval_required") {
+          setLogs(`⏳ Approval Required\n\n${msg.data}\n\nPlease go to the Approvals page.\n`);
+          setIsRunning(false);
+        } else if (msg.type === "error") { setLogs(p => p + "ERROR: " + msg.data + "\n"); setIsRunning(false); }
+      };
+      ws.onerror = () => {
+        const endpoints = { apply: `${API}/api/apply`, destroy: `${API}/api/destroy` };
+        authFetch(endpoints[action], {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ schemaId: id, inputs, region: r, env: e }),
+        }).then(res => res.json()).then(() => { setIsRunning(false); fetchHistory(); })
+          .catch(() => { setIsRunning(false); });
+      };
+      ws.onclose = () => { wsRef.current = null; };
+    } catch {
+      setIsRunning(false);
     }
   };
 
@@ -280,6 +356,57 @@ function ResourcePage() {
         </div>
 
         <div style={styles.sidePanel}>
+          {editingResource && (
+            <div style={styles.card}>
+              <h3 style={styles.sideTitle}>Outputs</h3>
+              {editingResource.outputs && Object.keys(editingResource.outputs).length > 0 ? (
+                <>
+                  <p style={{ fontSize: 13, color: theme.colors.textMuted, marginBottom: 16 }}>
+                    This resource has {Object.keys(editingResource.outputs).length} output(s).
+                  </p>
+                  <button
+                    style={styles.outputsBtn}
+                    onClick={handleDownloadOutputs}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ marginRight: 6 }}>
+                      <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    {editingResource.outputs.private_key_pem ? "Download Key (.pem)" : "Download Outputs JSON"}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p style={{ fontSize: 13, color: theme.colors.textMuted, marginBottom: 16 }}>
+                    No outputs cached yet. Click below to fetch from Terraform state.
+                  </p>
+                  <button
+                    style={styles.outputsBtn}
+                    onClick={async () => {
+                      try {
+                        const btn = document.activeElement;
+                        if (btn) btn.textContent = "Fetching...";
+                        const res = await authFetch(`${API}/api/resources/${editingResource.id}/refresh-outputs`, { method: "POST" });
+                        const data = await res.json();
+                        if (data.error) {
+                          alert("Error: " + data.error);
+                        } else {
+                          setEditingResource({ ...editingResource, outputs: data });
+                        }
+                      } catch (err) {
+                        alert("Failed: " + err.message);
+                      }
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ marginRight: 6 }}>
+                      <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Fetch Outputs
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
           <div style={styles.card}>
             <h3 style={styles.sideTitle}>GitHub Integration</h3>
             <PRButton
@@ -390,14 +517,14 @@ function ResourcePage() {
                           plan.status === "success"
                             ? "rgba(34,197,94,0.15)"
                             : plan.status === "running"
-                            ? "rgba(99,102,241,0.15)"
-                            : "rgba(239,68,68,0.15)",
+                              ? "rgba(99,102,241,0.15)"
+                              : "rgba(239,68,68,0.15)",
                         color:
                           plan.status === "success"
                             ? theme.colors.success
                             : plan.status === "running"
-                            ? theme.colors.primary
-                            : theme.colors.danger,
+                              ? theme.colors.primary
+                              : theme.colors.danger,
                       }}
                     >
                       {plan.status === "running" ? "Running" : plan.status === "success" ? "Success" : "Error"}
@@ -406,11 +533,11 @@ function ResourcePage() {
                       <span style={{
                         ...styles.actionBadge,
                         color: plan.action === "destroy" ? theme.colors.danger
-                             : plan.action === "apply" ? "#22c55e"
-                             : theme.colors.primary,
+                          : plan.action === "apply" ? "#22c55e"
+                            : theme.colors.primary,
                         background: plan.action === "destroy" ? "rgba(239,68,68,0.1)"
-                                  : plan.action === "apply" ? "rgba(34,197,94,0.1)"
-                                  : "rgba(99,102,241,0.1)",
+                          : plan.action === "apply" ? "rgba(34,197,94,0.1)"
+                            : "rgba(99,102,241,0.1)",
                       }}>{plan.action}</span>
                     )}
                     <span style={styles.historyName}>{plan.schema_name}</span>
@@ -450,250 +577,316 @@ function ResourcePage() {
         isRunning={isRunning}
         onClose={() => {
           setShowPlan(false);
-          setIsRunning(false);
-          if (wsRef.current) {
+          // Don't kill WebSocket or reset isRunning — let the operation continue in background.
+          // Logs keep accumulating so user can reopen modal to see them.
+          if (!isRunning && wsRef.current) {
             wsRef.current.close();
             wsRef.current = null;
           }
         }}
       />
+
+      <ConfirmModal
+        visible={!!confirmAction}
+        type={confirmAction?.action === "destroy" ? "danger" : "warning"}
+        title={confirmAction?.action === "destroy" ? "Kaynağı Sil" : "Değişiklikleri Uygula"}
+        message={confirmAction?.action === "destroy"
+          ? "Bu işlem altyapı kaynaklarınızı kalıcı olarak SİLECEKTİR. Bu işlem geri alınamaz. Devam etmek istediğinize emin misiniz?"
+          : "Bu işlem altyapınızda gerçek değişiklikler yapacaktır. Devam etmek istediğinize emin misiniz?"
+        }
+        confirmText={confirmAction?.action === "destroy" ? "Evet, Sil" : "Evet, Uygula"}
+        cancelText="İptal"
+        onConfirm={handleConfirmAction}
+        onCancel={() => setConfirmAction(null)}
+      />
+
+      {/* Floating banner to reopen logs when running in background */}
+      {isRunning && !showPlan && (
+        <div
+          onClick={() => setShowPlan(true)}
+          style={{
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "12px 20px",
+            background: theme.colors.card,
+            border: `1px solid ${theme.colors.warning}`,
+            borderRadius: theme.radius.md,
+            cursor: "pointer",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+            zIndex: 999,
+            animation: "fadeIn 0.2s ease-out",
+          }}
+        >
+          <div style={{
+            width: 10, height: 10, borderRadius: "50%",
+            background: theme.colors.warning,
+            animation: "pulse 1s infinite",
+          }} />
+          <span style={{ fontSize: 13, fontWeight: 600, color: theme.colors.text }}>
+            Operation running...
+          </span>
+          <span style={{ fontSize: 12, color: theme.colors.textMuted }}>
+            Click to view logs
+          </span>
+        </div>
+      )}
     </div>
   );
 }
 
 function getStyles(theme) {
   return {
-  page: {
-    maxWidth: 1200,
-    margin: "0 auto",
-    padding: "32px 32px",
-  },
-  loading: {
-    textAlign: "center",
-    color: theme.colors.textMuted,
-    padding: 60,
-    fontSize: 16,
-  },
-  breadcrumb: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 28,
-    fontSize: 14,
-  },
-  backLink: {
-    color: theme.colors.primary,
-    textDecoration: "none",
-  },
-  separator: {
-    color: theme.colors.textMuted,
-  },
-  current: {
-    color: theme.colors.text,
-    fontWeight: 500,
-  },
-  layout: {
-    display: "grid",
-    gridTemplateColumns: "1fr 360px",
-    gap: 24,
-    alignItems: "start",
-  },
-  formPanel: {},
-  sidePanel: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 20,
-  },
-  card: {
-    background: theme.colors.card,
-    border: `1px solid ${theme.colors.border}`,
-    borderRadius: theme.radius.lg,
-    padding: 28,
-  },
-  cardTitle: {
-    margin: "0 0 6px 0",
-    fontSize: 22,
-    fontWeight: 700,
-    color: theme.colors.text,
-  },
-  cardDesc: {
-    margin: "0 0 24px 0",
-    fontSize: 14,
-    color: theme.colors.textMuted,
-    lineHeight: 1.5,
-  },
-  sideTitle: {
-    margin: "0 0 16px 0",
-    fontSize: 15,
-    fontWeight: 600,
-    color: theme.colors.text,
-  },
-  infoRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    padding: "8px 0",
-    borderBottom: `1px solid ${theme.colors.border}`,
-  },
-  costBtn: {
-    width: "100%",
-    padding: "10px 16px",
-    background: "rgba(245,158,11,0.1)",
-    color: theme.colors.warning,
-    border: `1px solid ${theme.colors.warning}`,
-    borderRadius: theme.radius.sm,
-    fontSize: 13,
-    fontWeight: 600,
-    cursor: "pointer",
-    transition: "all 0.2s",
-  },
-  costResult: {
-    marginTop: 12,
-    padding: 12,
-    background: "rgba(99,102,241,0.05)",
-    borderRadius: theme.radius.sm,
-  },
-  costAmount: {
-    fontSize: 24,
-    fontWeight: 700,
-    color: theme.colors.text,
-    fontFamily: theme.fonts.mono,
-  },
-  costPeriod: {
-    fontSize: 13,
-    fontWeight: 400,
-    color: theme.colors.textMuted,
-    marginLeft: 4,
-  },
-  costMeta: {
-    fontSize: 12,
-    color: theme.colors.textMuted,
-    marginTop: 4,
-  },
-  costUnavailable: {
-    fontSize: 12,
-    color: theme.colors.textMuted,
-    lineHeight: 1.5,
-  },
-  infoLabel: {
-    fontSize: 13,
-    color: theme.colors.textMuted,
-  },
-  infoValue: {
-    fontSize: 13,
-    color: theme.colors.text,
-    fontWeight: 500,
-  },
-  historySection: {
-    marginTop: 32,
-  },
-  historyTitle: {
-    fontSize: 18,
-    fontWeight: 600,
-    color: theme.colors.text,
-    margin: "0 0 16px 0",
-  },
-  historyList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  historyItem: {
-    background: theme.colors.card,
-    border: `1px solid ${theme.colors.border}`,
-    borderRadius: theme.radius.md,
-    overflow: "hidden",
-    transition: "border-color 0.2s",
-  },
-  historyItemActive: {
-    borderColor: theme.colors.primary,
-  },
-  historyRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "14px 20px",
-    cursor: "pointer",
-    transition: "background 0.15s",
-  },
-  historyLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-  },
-  statusBadge: {
-    padding: "3px 10px",
-    borderRadius: 12,
-    fontSize: 11,
-    fontWeight: 600,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  actionBadge: {
-    padding: "2px 8px",
-    borderRadius: 8,
-    fontSize: 10,
-    fontWeight: 700,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  historyName: {
-    fontSize: 14,
-    fontWeight: 500,
-    color: theme.colors.text,
-  },
-  historyEnv: {
-    fontSize: 12,
-    color: theme.colors.textMuted,
-    background: "rgba(99,102,241,0.1)",
-    padding: "2px 8px",
-    borderRadius: 8,
-  },
-  historyRight: {
-    display: "flex",
-    alignItems: "center",
-    gap: 16,
-  },
-  historyDuration: {
-    fontSize: 12,
-    color: theme.colors.textMuted,
-    fontFamily: theme.fonts.mono,
-  },
-  historyTime: {
-    fontSize: 12,
-    color: theme.colors.textMuted,
-  },
-  historyChevron: {
-    fontSize: 10,
-    color: theme.colors.textMuted,
-  },
-  historyExpanded: {
-    borderTop: `1px solid ${theme.colors.border}`,
-    padding: 16,
-    background: theme.colors.terminal,
-  },
-  historyLogs: {
-    margin: 0,
-    fontFamily: theme.fonts.mono,
-    fontSize: 12,
-    lineHeight: 1.5,
-    color: theme.colors.terminalText,
-    whiteSpace: "pre-wrap",
-    wordBreak: "break-word",
-    maxHeight: 200,
-    overflow: "auto",
-  },
-  viewFullBtn: {
-    marginTop: 12,
-    padding: "6px 14px",
-    background: theme.colors.primary,
-    color: "#fff",
-    border: "none",
-    borderRadius: theme.radius.sm,
-    fontSize: 12,
-    fontWeight: 500,
-    cursor: "pointer",
-  },
-};
+    page: {
+      maxWidth: 1200,
+      margin: "0 auto",
+      padding: "32px 32px",
+    },
+    loading: {
+      textAlign: "center",
+      color: theme.colors.textMuted,
+      padding: 60,
+      fontSize: 16,
+    },
+    breadcrumb: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 28,
+      fontSize: 14,
+    },
+    backLink: {
+      color: theme.colors.primary,
+      textDecoration: "none",
+    },
+    separator: {
+      color: theme.colors.textMuted,
+    },
+    current: {
+      color: theme.colors.text,
+      fontWeight: 500,
+    },
+    layout: {
+      display: "grid",
+      gridTemplateColumns: "1fr 360px",
+      gap: 24,
+      alignItems: "start",
+    },
+    formPanel: {},
+    sidePanel: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 20,
+    },
+    card: {
+      background: theme.colors.card,
+      border: `1px solid ${theme.colors.border}`,
+      borderRadius: theme.radius.lg,
+      padding: 28,
+    },
+    cardTitle: {
+      margin: "0 0 6px 0",
+      fontSize: 22,
+      fontWeight: 700,
+      color: theme.colors.text,
+    },
+    cardDesc: {
+      margin: "0 0 24px 0",
+      fontSize: 14,
+      color: theme.colors.textMuted,
+      lineHeight: 1.5,
+    },
+    sideTitle: {
+      margin: "0 0 16px 0",
+      fontSize: 15,
+      fontWeight: 600,
+      color: theme.colors.text,
+    },
+    infoRow: {
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "8px 0",
+      borderBottom: `1px solid ${theme.colors.border}`,
+    },
+    costBtn: {
+      width: "100%",
+      padding: "10px 16px",
+      background: "rgba(245,158,11,0.1)",
+      color: theme.colors.warning,
+      border: `1px solid ${theme.colors.warning}`,
+      borderRadius: theme.radius.sm,
+      fontSize: 13,
+      fontWeight: 600,
+      cursor: "pointer",
+      transition: "all 0.2s",
+    },
+    costResult: {
+      marginTop: 12,
+      padding: 12,
+      background: "rgba(99,102,241,0.05)",
+      borderRadius: theme.radius.sm,
+    },
+    costAmount: {
+      fontSize: 24,
+      fontWeight: 700,
+      color: theme.colors.text,
+      fontFamily: theme.fonts.mono,
+    },
+    costPeriod: {
+      fontSize: 13,
+      fontWeight: 400,
+      color: theme.colors.textMuted,
+      marginLeft: 4,
+    },
+    costMeta: {
+      fontSize: 12,
+      color: theme.colors.textMuted,
+      marginTop: 4,
+    },
+    costUnavailable: {
+      fontSize: 12,
+      color: theme.colors.textMuted,
+      lineHeight: 1.5,
+    },
+    infoLabel: {
+      fontSize: 13,
+      color: theme.colors.textMuted,
+    },
+    outputsBtn: {
+      width: "100%",
+      padding: "8px 0",
+      textAlign: "center",
+      borderRadius: theme.radius.sm,
+      background: theme.colors.surface,
+      border: `1px solid ${theme.colors.border}`,
+      color: theme.colors.text,
+      fontSize: 13,
+      fontWeight: 600,
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      transition: "background 0.2s",
+    },
+    infoValue: {
+      fontSize: 13,
+      color: theme.colors.text,
+      fontWeight: 500,
+    },
+    historySection: {
+      marginTop: 32,
+    },
+    historyTitle: {
+      fontSize: 18,
+      fontWeight: 600,
+      color: theme.colors.text,
+      margin: "0 0 16px 0",
+    },
+    historyList: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8,
+    },
+    historyItem: {
+      background: theme.colors.card,
+      border: `1px solid ${theme.colors.border}`,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+      transition: "border-color 0.2s",
+    },
+    historyItemActive: {
+      borderColor: theme.colors.primary,
+    },
+    historyRow: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "14px 20px",
+      cursor: "pointer",
+      transition: "background 0.15s",
+    },
+    historyLeft: {
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+    },
+    statusBadge: {
+      padding: "3px 10px",
+      borderRadius: 12,
+      fontSize: 11,
+      fontWeight: 600,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    actionBadge: {
+      padding: "2px 8px",
+      borderRadius: 8,
+      fontSize: 10,
+      fontWeight: 700,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    historyName: {
+      fontSize: 14,
+      fontWeight: 500,
+      color: theme.colors.text,
+    },
+    historyEnv: {
+      fontSize: 12,
+      color: theme.colors.textMuted,
+      background: "rgba(99,102,241,0.1)",
+      padding: "2px 8px",
+      borderRadius: 8,
+    },
+    historyRight: {
+      display: "flex",
+      alignItems: "center",
+      gap: 16,
+    },
+    historyDuration: {
+      fontSize: 12,
+      color: theme.colors.textMuted,
+      fontFamily: theme.fonts.mono,
+    },
+    historyTime: {
+      fontSize: 12,
+      color: theme.colors.textMuted,
+    },
+    historyChevron: {
+      fontSize: 10,
+      color: theme.colors.textMuted,
+    },
+    historyExpanded: {
+      borderTop: `1px solid ${theme.colors.border}`,
+      padding: 16,
+      background: theme.colors.terminal,
+    },
+    historyLogs: {
+      margin: 0,
+      fontFamily: theme.fonts.mono,
+      fontSize: 12,
+      lineHeight: 1.5,
+      color: theme.colors.terminalText,
+      whiteSpace: "pre-wrap",
+      wordBreak: "break-word",
+      maxHeight: 200,
+      overflow: "auto",
+    },
+    viewFullBtn: {
+      marginTop: 12,
+      padding: "6px 14px",
+      background: theme.colors.primary,
+      color: "#fff",
+      border: "none",
+      borderRadius: theme.radius.sm,
+      fontSize: 12,
+      fontWeight: 500,
+      cursor: "pointer",
+    },
+  };
 }
 
 export default ResourcePage;

@@ -6,7 +6,7 @@
   "icon": "acm",
   "category": "security",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-acm.git//?ref=v5.0.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/acm?ref=main"
   },
   "inputs": [
     {
@@ -29,7 +29,10 @@
       "label": "Validation Method",
       "type": "select",
       "default": "DNS",
-      "options": ["DNS", "EMAIL"],
+      "options": [
+        "DNS",
+        "EMAIL"
+      ],
       "description": "How to validate domain ownership"
     },
     {
@@ -45,5 +48,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/acm-{domain_name}/terragrunt.hcl"
+  "path_template": "infra/{env}/acm-{domain_name}/main.tf"
 }

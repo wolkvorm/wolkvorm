@@ -6,7 +6,7 @@
   "icon": "autoscaling",
   "category": "compute",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-autoscaling.git//?ref=v7.4.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/autoscaling?ref=main"
   },
   "inputs": [
     {
@@ -22,7 +22,15 @@
       "label": "Instance Type",
       "type": "select",
       "default": "t3.micro",
-      "options": ["t3.micro", "t3.small", "t3.medium", "t3.large", "m5.large", "m5.xlarge", "c5.large"],
+      "options": [
+        "t3.micro",
+        "t3.small",
+        "t3.medium",
+        "t3.large",
+        "m5.large",
+        "m5.xlarge",
+        "c5.large"
+      ],
       "description": "EC2 instance type for the launch template"
     },
     {
@@ -67,7 +75,10 @@
       "label": "Health Check Type",
       "type": "select",
       "default": "EC2",
-      "options": ["EC2", "ELB"],
+      "options": [
+        "EC2",
+        "ELB"
+      ],
       "description": "Type of health check"
     }
   ],
@@ -76,5 +87,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/asg-{name}/terragrunt.hcl"
+  "path_template": "infra/{env}/asg-{name}/main.tf"
 }

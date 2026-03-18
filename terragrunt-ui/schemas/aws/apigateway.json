@@ -6,7 +6,7 @@
   "icon": "apigateway",
   "category": "networking",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-apigateway-v2.git//?ref=v5.0.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/apigateway?ref=main"
   },
   "inputs": [
     {
@@ -22,7 +22,10 @@
       "label": "Protocol",
       "type": "select",
       "default": "HTTP",
-      "options": ["HTTP", "WEBSOCKET"],
+      "options": [
+        "HTTP",
+        "WEBSOCKET"
+      ],
       "description": "API protocol type"
     },
     {
@@ -53,5 +56,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/apigw-{name}/terragrunt.hcl"
+  "path_template": "infra/{env}/apigw-{name}/main.tf"
 }

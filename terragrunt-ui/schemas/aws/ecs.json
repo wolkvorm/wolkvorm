@@ -6,7 +6,7 @@
   "icon": "ecs",
   "category": "compute",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-ecs.git//?ref=v5.9.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/ecs?ref=main"
   },
   "inputs": [
     {
@@ -37,5 +37,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/ecs-{cluster_name}/terragrunt.hcl"
+  "path_template": "infra/{env}/ecs-{cluster_name}/main.tf"
 }

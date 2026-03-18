@@ -1,0 +1,138 @@
+{
+  "id": "huawei-ecs",
+  "name": "ECS Instance",
+  "description": "Huawei Cloud Elastic Cloud Server virtual machine",
+  "provider": "huaweicloud",
+  "icon": "ecs",
+  "category": "compute",
+  "inputs": [
+    {
+      "name": "name",
+      "label": "Instance Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-ecs-instance"
+    },
+    {
+      "name": "region",
+      "label": "Region",
+      "type": "select",
+      "required": true,
+      "options": [
+        "cn-north-4",
+        "cn-east-3",
+        "cn-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "eu-west-101",
+        "la-south-2"
+      ],
+      "default": "ap-southeast-1"
+    },
+    {
+      "name": "flavor_id",
+      "label": "Flavor (Instance Type)",
+      "type": "select",
+      "required": true,
+      "options": [
+        "s6.small.1",
+        "s6.medium.2",
+        "s6.large.2",
+        "s6.large.4",
+        "s6.xlarge.2",
+        "s6.xlarge.4",
+        "c3.large.2",
+        "c3.xlarge.2",
+        "c3.xlarge.4",
+        "m3.large.8"
+      ],
+      "default": "s6.large.2"
+    },
+    {
+      "name": "image_id",
+      "label": "Image ID",
+      "type": "string",
+      "required": true,
+      "placeholder": "e1c5a81e-6516-...",
+      "description": "Use the image ID from Huawei Cloud Console"
+    },
+    {
+      "name": "availability_zone",
+      "label": "Availability Zone",
+      "type": "string",
+      "required": true,
+      "placeholder": "ap-southeast-1a",
+      "description": "e.g. ap-southeast-1a, cn-north-4a"
+    },
+    {
+      "name": "vpc_id",
+      "label": "VPC ID",
+      "type": "string",
+      "required": true,
+      "placeholder": "vpc-xxxxx"
+    },
+    {
+      "name": "network_id",
+      "label": "Subnet ID",
+      "type": "string",
+      "required": true,
+      "placeholder": "subnet-xxxxx"
+    },
+    {
+      "name": "security_group_ids",
+      "label": "Security Group IDs",
+      "type": "list",
+      "required": false,
+      "placeholder": "sg-xxxxx\nsg-yyyyy",
+      "description": "One security group ID per line"
+    },
+    {
+      "name": "system_disk_type",
+      "label": "System Disk Type",
+      "type": "select",
+      "required": false,
+      "options": [
+        "SSD",
+        "GPSSD",
+        "SAS",
+        "ESSD"
+      ],
+      "default": "GPSSD",
+      "advanced": true
+    },
+    {
+      "name": "system_disk_size",
+      "label": "System Disk Size (GB)",
+      "type": "number",
+      "required": false,
+      "default": 40,
+      "advanced": true
+    },
+    {
+      "name": "key_pair",
+      "label": "Key Pair Name",
+      "type": "string",
+      "required": false,
+      "placeholder": "my-keypair",
+      "advanced": true
+    },
+    {
+      "name": "user_data",
+      "label": "User Data",
+      "type": "multiline",
+      "required": false,
+      "placeholder": "#!/bin/bash\nyum update -y",
+      "advanced": true
+    }
+  ],
+  "common_inputs": {
+    "region": false,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/huawei-ecs-{name}/main.tf",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/huawei/ecs?ref=main"
+  }
+}

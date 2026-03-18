@@ -94,7 +94,7 @@ function ImportPage() {
     <div style={styles.page}>
       <div style={styles.header}>
         <h1 style={styles.title}>Import Resources</h1>
-        <p style={styles.subtitle}>Discover and import existing AWS resources into TerraForge</p>
+        <p style={styles.subtitle}>Discover and import existing AWS resources into Wolkvorm</p>
       </div>
 
       {/* Steps indicator */}

@@ -21,15 +21,6 @@ RUN if [ "$TARGETARCH" = "arm64" ]; then \
     mv terraform /usr/local/bin/ && \
     rm terraform.zip
 
-# Terragrunt
-RUN if [ "$TARGETARCH" = "arm64" ]; then \
-      TG_ARCH="arm64"; \
-    else \
-      TG_ARCH="amd64"; \
-    fi && \
-    curl -Lo /usr/local/bin/terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/v0.57.0/terragrunt_linux_${TG_ARCH} && \
-    chmod +x /usr/local/bin/terragrunt
-
 # Pre-cache AWS provider to avoid downloading on every run
 ENV TF_PLUGIN_CACHE_DIR="/root/.terraform.d/plugin-cache"
 RUN mkdir -p $TF_PLUGIN_CACHE_DIR /tmp/tf-init && \

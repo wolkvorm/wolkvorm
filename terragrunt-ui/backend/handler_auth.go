@@ -46,10 +46,10 @@ func initJWTSecret() {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		// Derive from the encryption key so there's one less thing to configure
-		secret = os.Getenv("GRANDFORM_SECRET_KEY")
+		secret = os.Getenv("WOLKVORM_SECRET_KEY")
 	}
 	if secret == "" {
-		secret = "grandform-jwt-secret-change-me"
+		secret = "wolkvorm-jwt-secret-change-me"
 	}
 	jwtSecret = []byte(secret)
 }
@@ -187,7 +187,7 @@ func generateToken(user *User) (string, error) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			Issuer:    "terraforge",
+			Issuer:    "wolkvorm",
 		},
 	}
 

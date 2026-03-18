@@ -7,7 +7,7 @@ COPY backend/go.mod backend/go.sum ./
 RUN go mod download
 
 COPY backend/ ./
-RUN CGO_ENABLED=0 GOOS=linux go build -o terraforge-backend .
+RUN CGO_ENABLED=0 GOOS=linux go build -o wolkvorm-backend .
 
 # Runtime stage
 FROM alpine:3.19
@@ -16,15 +16,15 @@ RUN apk add --no-cache ca-certificates docker-cli
 
 WORKDIR /app
 
-COPY --from=builder /build/terraforge-backend .
+COPY --from=builder /build/wolkvorm-backend .
 COPY schemas/ /schemas/
 
 ENV SCHEMAS_DIR=/schemas
-ENV GRANDFORM_DATA_DIR=/app/data
+ENV WOLKVORM_DATA_DIR=/app/data
 
 # Create data directory for SQLite and settings
 RUN mkdir -p /app/data
 
 EXPOSE 8080
 
-ENTRYPOINT ["./terraforge-backend"]
+ENTRYPOINT ["./wolkvorm-backend"]

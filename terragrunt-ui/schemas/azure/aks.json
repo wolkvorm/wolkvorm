@@ -1,0 +1,149 @@
+{
+  "id": "azure-aks",
+  "name": "AKS Cluster",
+  "description": "Azure Kubernetes Service managed Kubernetes cluster",
+  "provider": "azurerm",
+  "icon": "aks",
+  "category": "containers",
+  "inputs": [
+    {
+      "name": "name",
+      "label": "Cluster Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-aks-cluster"
+    },
+    {
+      "name": "resource_group_name",
+      "label": "Resource Group",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-resource-group"
+    },
+    {
+      "name": "location",
+      "label": "Location",
+      "type": "select",
+      "required": true,
+      "options": [
+        "westeurope",
+        "northeurope",
+        "eastus",
+        "eastus2",
+        "westus2",
+        "centralus",
+        "southeastasia",
+        "japaneast",
+        "australiaeast",
+        "uksouth"
+      ],
+      "default": "westeurope"
+    },
+    {
+      "name": "dns_prefix",
+      "label": "DNS Prefix",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-aks"
+    },
+    {
+      "name": "kubernetes_version",
+      "label": "Kubernetes Version",
+      "type": "select",
+      "required": false,
+      "options": [
+        "1.31",
+        "1.30",
+        "1.29",
+        "1.28"
+      ],
+      "default": "1.31"
+    },
+    {
+      "name": "name",
+      "label": "Default Node Pool Name",
+      "type": "string",
+      "required": false,
+      "default": "default"
+    },
+    {
+      "name": "vm_size",
+      "label": "Node VM Size",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Standard_D2s_v3",
+        "Standard_D4s_v3",
+        "Standard_D8s_v3",
+        "Standard_DS2_v2",
+        "Standard_DS3_v2",
+        "Standard_B4ms"
+      ],
+      "default": "Standard_D2s_v3"
+    },
+    {
+      "name": "node_count",
+      "label": "Node Count",
+      "type": "number",
+      "required": false,
+      "default": 2
+    },
+    {
+      "name": "min_count",
+      "label": "Min Nodes",
+      "type": "number",
+      "required": false,
+      "default": 1,
+      "advanced": true
+    },
+    {
+      "name": "max_count",
+      "label": "Max Nodes",
+      "type": "number",
+      "required": false,
+      "default": 5,
+      "advanced": true
+    },
+    {
+      "name": "enable_auto_scaling",
+      "label": "Enable Auto Scaling",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "advanced": true
+    },
+    {
+      "name": "type",
+      "label": "Identity Type",
+      "type": "select",
+      "required": false,
+      "options": [
+        "SystemAssigned",
+        "UserAssigned"
+      ],
+      "default": "SystemAssigned"
+    },
+    {
+      "name": "network_plugin",
+      "label": "Network Plugin",
+      "type": "select",
+      "required": false,
+      "options": [
+        "azure",
+        "kubenet",
+        "none"
+      ],
+      "default": "azure",
+      "advanced": true
+    }
+  ],
+  "common_inputs": {
+    "region": false,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/azure-aks-{name}/main.tf",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/azure/aks?ref=main"
+  }
+}

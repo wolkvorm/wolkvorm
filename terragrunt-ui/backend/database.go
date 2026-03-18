@@ -29,13 +29,13 @@ type DBRecord struct {
 }
 
 func initDB() {
-	dataDir := os.Getenv("GRANDFORM_DATA_DIR")
+	dataDir := os.Getenv("WOLKVORM_DATA_DIR")
 	if dataDir == "" {
 		dataDir = "."
 	}
 	os.MkdirAll(dataDir, 0755)
 
-	dbPath := filepath.Join(dataDir, "grandform.db")
+	dbPath := filepath.Join(dataDir, "wolkvorm.db")
 	var err error
 	db, err = sqlx.Open("sqlite", dbPath)
 	if err != nil {
@@ -73,7 +73,8 @@ func initDB() {
 		status TEXT NOT NULL DEFAULT 'active',
 		created_at TEXT NOT NULL,
 		updated_at TEXT NOT NULL,
-		last_apply_id TEXT DEFAULT ''
+		last_apply_id TEXT DEFAULT '',
+		outputs_json TEXT DEFAULT '{}'
 	);
 	CREATE INDEX IF NOT EXISTS idx_resources_status ON resources(status);
 	CREATE INDEX IF NOT EXISTS idx_resources_schema ON resources(schema_id);
@@ -202,6 +203,11 @@ func initDB() {
 		fmt.Printf("Warning: Could not create tables: %v\n", err)
 		return
 	}
+
+	// Add outputs_json column if it doesn't exist (for existing databases)
+	// This is done separately because ALTER TABLE ADD COLUMN IF NOT EXISTS is not supported by SQLite.
+	// Instead, we just try to add it and ignore the error if it already exists.
+	_, _ = db.Exec(`ALTER TABLE resources ADD COLUMN outputs_json TEXT DEFAULT '{}';`)
 
 	// Clean up stale "running" records from previous server sessions
 	cleanupStaleRecords()
@@ -360,7 +366,7 @@ func dbGetRecord(id string) *PlanRecord {
 	}
 }
 
-// ManagedResource represents a resource managed by GrandForm.
+// ManagedResource represents a resource managed by Wolkvorm.
 type ManagedResource struct {
 	ID          string         `db:"id" json:"id"`
 	Name        string         `db:"name" json:"name"`
@@ -375,6 +381,8 @@ type ManagedResource struct {
 	CreatedAt   string         `db:"created_at" json:"created_at"`
 	UpdatedAt   string         `db:"updated_at" json:"updated_at"`
 	LastApplyID string         `db:"last_apply_id" json:"last_apply_id"`
+	OutputsJSON string         `db:"outputs_json" json:"-"`
+	Outputs     map[string]any `db:"-" json:"outputs,omitempty"`
 }
 
 // dbInsertResource inserts a new managed resource.
@@ -418,6 +426,19 @@ func dbUpdateResourceStatus(id string, status string) error {
 	return err
 }
 
+// dbUpdateResourceOutputs stores terraform outputs for a resource.
+func dbUpdateResourceOutputs(id string, outputs map[string]any) error {
+	if db == nil {
+		return fmt.Errorf("database not initialized")
+	}
+	outputsJSON, _ := json.Marshal(outputs)
+	_, err := db.Exec(`UPDATE resources SET outputs_json=? WHERE id=?`, string(outputsJSON), id)
+	if err != nil {
+		fmt.Printf("DB resource outputs update error: %v\n", err)
+	}
+	return err
+}
+
 // dbGetResources returns all resources, optionally filtered by status.
 func dbGetResources(includeDestroyed bool) []ManagedResource {
 	if db == nil {
@@ -443,6 +464,10 @@ func dbGetResources(includeDestroyed bool) []ManagedResource {
 		var inputs map[string]any
 		json.Unmarshal([]byte(rows[i].InputsJSON), &inputs)
 		rows[i].Inputs = inputs
+		
+		var outputs map[string]any
+		json.Unmarshal([]byte(rows[i].OutputsJSON), &outputs)
+		rows[i].Outputs = outputs
 	}
 
 	return rows
@@ -463,6 +488,11 @@ func dbGetResource(id string) *ManagedResource {
 	var inputs map[string]any
 	json.Unmarshal([]byte(r.InputsJSON), &inputs)
 	r.Inputs = inputs
+	
+	var outputs map[string]any
+	json.Unmarshal([]byte(r.OutputsJSON), &outputs)
+	r.Outputs = outputs
+	
 	return &r
 }
 
@@ -481,6 +511,11 @@ func dbGetResourceByStateKey(stateKey string) *ManagedResource {
 	var inputs map[string]any
 	json.Unmarshal([]byte(r.InputsJSON), &inputs)
 	r.Inputs = inputs
+
+	var outputs map[string]any
+	json.Unmarshal([]byte(r.OutputsJSON), &outputs)
+	r.Outputs = outputs
+	
 	return &r
 }
 

@@ -6,7 +6,7 @@
   "icon": "security-group",
   "category": "networking",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-security-group.git//?ref=v5.1.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/security-group?ref=main"
   },
   "inputs": [
     {
@@ -21,7 +21,7 @@
       "name": "description",
       "label": "Description",
       "type": "string",
-      "default": "Managed by GrandForm",
+      "default": "Managed by Wolkvorm",
       "placeholder": "Allow inbound traffic for web server",
       "description": "Description of the security group"
     },
@@ -39,8 +39,22 @@
       "label": "Inbound Rules",
       "type": "sg_rules",
       "default": [
-        {"type": "HTTP", "protocol": "tcp", "from_port": 80, "to_port": 80, "cidr": "0.0.0.0/0", "description": "HTTP"},
-        {"type": "HTTPS", "protocol": "tcp", "from_port": 443, "to_port": 443, "cidr": "0.0.0.0/0", "description": "HTTPS"}
+        {
+          "type": "HTTP",
+          "protocol": "tcp",
+          "from_port": 80,
+          "to_port": 80,
+          "cidr": "0.0.0.0/0",
+          "description": "HTTP"
+        },
+        {
+          "type": "HTTPS",
+          "protocol": "tcp",
+          "from_port": 443,
+          "to_port": 443,
+          "cidr": "0.0.0.0/0",
+          "description": "HTTPS"
+        }
       ],
       "description": "Inbound traffic rules"
     },
@@ -49,7 +63,14 @@
       "label": "Outbound Rules",
       "type": "sg_rules",
       "default": [
-        {"type": "All traffic", "protocol": "all", "from_port": 0, "to_port": 0, "cidr": "0.0.0.0/0", "description": "Allow all outbound"}
+        {
+          "type": "All traffic",
+          "protocol": "all",
+          "from_port": 0,
+          "to_port": 0,
+          "cidr": "0.0.0.0/0",
+          "description": "Allow all outbound"
+        }
       ],
       "description": "Outbound traffic rules"
     }
@@ -59,5 +80,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/sg-{name}/terragrunt.hcl"
+  "path_template": "infra/{env}/sg-{name}/main.tf"
 }

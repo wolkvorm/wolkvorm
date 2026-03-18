@@ -6,7 +6,7 @@
   "icon": "dynamodb",
   "category": "database",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-dynamodb-table.git//?ref=v4.0.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/dynamodb?ref=main"
   },
   "inputs": [
     {
@@ -22,7 +22,10 @@
       "label": "Billing Mode",
       "type": "select",
       "default": "PAY_PER_REQUEST",
-      "options": ["PAY_PER_REQUEST", "PROVISIONED"],
+      "options": [
+        "PAY_PER_REQUEST",
+        "PROVISIONED"
+      ],
       "description": "Billing mode (on-demand or provisioned)"
     },
     {
@@ -38,7 +41,11 @@
       "label": "Partition Key Type",
       "type": "select",
       "default": "S",
-      "options": ["S", "N", "B"],
+      "options": [
+        "S",
+        "N",
+        "B"
+      ],
       "description": "Type of the partition key (S=String, N=Number, B=Binary)"
     },
     {
@@ -53,7 +60,11 @@
       "label": "Sort Key Type",
       "type": "select",
       "default": "S",
-      "options": ["S", "N", "B"],
+      "options": [
+        "S",
+        "N",
+        "B"
+      ],
       "description": "Type of the sort key"
     },
     {
@@ -76,5 +87,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/dynamodb-{name}/terragrunt.hcl"
+  "path_template": "infra/{env}/dynamodb-{name}/main.tf"
 }

@@ -8,10 +8,10 @@ import (
 // HCLOptions holds optional configuration for HCL generation.
 type HCLOptions struct {
 	Region   string
-	StateKey string // if set, adds remote_state block
+	StateKey string // if set, adds S3 backend block
 }
 
-// GenerateHCL produces a terragrunt.hcl file content from a schema and user inputs.
+// GenerateHCL produces a main.tf file content from a schema and user inputs.
 func GenerateHCL(schema *ResourceSchema, inputs map[string]any, env string, region ...string) string {
 	opts := HCLOptions{}
 	if len(region) > 0 && region[0] != "" {
@@ -20,7 +20,7 @@ func GenerateHCL(schema *ResourceSchema, inputs map[string]any, env string, regi
 	return GenerateHCLWithOptions(schema, inputs, env, opts)
 }
 
-// GenerateHCLWithOptions produces a terragrunt.hcl with full options including remote state.
+// GenerateHCLWithOptions produces a main.tf with full options including remote state.
 func GenerateHCLWithOptions(schema *ResourceSchema, inputs map[string]any, env string, opts HCLOptions) string {
 	var b strings.Builder
 
@@ -29,21 +29,9 @@ func GenerateHCLWithOptions(schema *ResourceSchema, inputs map[string]any, env s
 		reg = "eu-central-1"
 	}
 
-	// Generate provider block with explicit region
-	b.WriteString("generate \"provider\" {\n")
-	b.WriteString("  path      = \"provider.tf\"\n")
-	b.WriteString("  if_exists = \"overwrite_terragrunt\"\n")
-	b.WriteString("  contents  = <<EOF\n")
-	b.WriteString(fmt.Sprintf("provider \"aws\" {\n  region = \"%s\"\n}\nEOF\n", reg))
-	b.WriteString("}\n\n")
-
-	// Generate S3 backend block (if state backend is configured)
+	// Terraform backend block (if state backend is configured)
 	stateInfo := GetStateBackendInfo()
 	if stateInfo != nil && opts.StateKey != "" {
-		b.WriteString("generate \"backend\" {\n")
-		b.WriteString("  path      = \"backend.tf\"\n")
-		b.WriteString("  if_exists = \"overwrite_terragrunt\"\n")
-		b.WriteString("  contents  = <<EOF\n")
 		b.WriteString("terraform {\n")
 		b.WriteString("  backend \"s3\" {\n")
 		b.WriteString(fmt.Sprintf("    bucket         = \"%s\"\n", stateInfo.Bucket))
@@ -52,36 +40,53 @@ func GenerateHCLWithOptions(schema *ResourceSchema, inputs map[string]any, env s
 		b.WriteString("    encrypt        = true\n")
 		b.WriteString(fmt.Sprintf("    dynamodb_table = \"%s\"\n", stateInfo.LockTable))
 		b.WriteString("  }\n")
-		b.WriteString("}\n")
-		b.WriteString("EOF\n")
 		b.WriteString("}\n\n")
 	}
 
-	// terraform block
-	b.WriteString("terraform {\n")
-	b.WriteString(fmt.Sprintf("  source = \"%s\"\n", schema.Module.Source))
-	b.WriteString("}\n\n")
-
-	// inputs block
-	b.WriteString("inputs = {\n")
-
-	// EKS node group fields that need to be merged into eks_managed_node_group_defaults
-	eksNodeFields := map[string]bool{
-		"node_desired_size":   true,
-		"node_min_size":       true,
-		"node_max_size":       true,
-		"node_instance_types": true,
-		"node_capacity_type":  true,
-		"node_ami_type":       true,
-		"node_disk_size":      true,
+	// Provider block
+	provider := schema.Provider
+	if provider == "" {
+		provider = "aws"
+	}
+	switch provider {
+	case "aws":
+		b.WriteString(fmt.Sprintf("provider \"aws\" {\n  region = \"%s\"\n}\n\n", reg))
+	case "azurerm":
+		b.WriteString("provider \"azurerm\" {\n  features {}\n}\n\n")
+	case "google":
+		b.WriteString(fmt.Sprintf("provider \"google\" {\n  region = \"%s\"\n}\n\n", reg))
+	case "digitalocean":
+		b.WriteString("provider \"digitalocean\" {}\n\n")
+	case "huaweicloud":
+		b.WriteString(fmt.Sprintf("provider \"huaweicloud\" {\n  region = \"%s\"\n}\n\n", reg))
+	default:
+		b.WriteString(fmt.Sprintf("provider \"%s\" {}\n\n", provider))
 	}
 
-	for _, field := range schema.Inputs {
-		// Skip EKS node fields — they'll be merged below
-		if eksNodeFields[field.Name] {
-			continue
+	// Resource or Module block
+	if schema.ResourceType != "" {
+		// Direct resource block (e.g. azurerm_virtual_network)
+		b.WriteString(fmt.Sprintf("resource \"%s\" \"this\" {\n", schema.ResourceType))
+	} else {
+		// Module block
+		b.WriteString("module \"this\" {\n")
+		b.WriteString(fmt.Sprintf("  source  = \"%s\"\n", schema.Module.Source))
+		if schema.Module.Version != "" {
+			b.WriteString(fmt.Sprintf("  version = \"%s\"\n", schema.Module.Version))
 		}
+		b.WriteString("\n")
+	}
 
+	// Collect block fields separately so we can group them
+	type blockField struct {
+		blockName string
+		fieldName string
+		fieldType string
+		val       any
+	}
+	var blockFields []blockField
+
+	for _, field := range schema.Inputs {
 		val, exists := inputs[field.Name]
 		if !exists {
 			if field.Default != nil {
@@ -95,6 +100,12 @@ func GenerateHCLWithOptions(schema *ResourceSchema, inputs map[string]any, env s
 		// causes validation errors for fields like acceleration_status that expect
 		// specific enum values or nothing at all.
 		if strVal, ok := val.(string); ok && strVal == "" {
+			continue
+		}
+
+		// If field belongs to a nested block, collect it for later
+		if field.Block != "" {
+			blockFields = append(blockFields, blockField{field.Block, field.Name, field.Type, val})
 			continue
 		}
 
@@ -118,72 +129,28 @@ func GenerateHCLWithOptions(schema *ResourceSchema, inputs map[string]any, env s
 		b.WriteString(formatHCLValue(field.Name, field.Type, val))
 	}
 
-	// Merge EKS node group fields into eks_managed_node_group_defaults
-	if schema.ID == "eks" {
-		desiredSize := getInputInt(inputs, "node_desired_size", 2)
-		minSize := getInputInt(inputs, "node_min_size", 1)
-		maxSize := getInputInt(inputs, "node_max_size", 4)
-		instanceType := getInputStr(inputs, "node_instance_types", "t3.large")
-		capacityType := getInputStr(inputs, "node_capacity_type", "ON_DEMAND")
-		amiType := getInputStr(inputs, "node_ami_type", "AL2023_x86_64_STANDARD")
-		diskSize := getInputInt(inputs, "node_disk_size", 50)
-
-		// Check if there's already a custom eks_managed_node_group_defaults from HCL field
-		existingDefaults := ""
-		if v, ok := inputs["eks_managed_node_group_defaults"]; ok {
-			if s, ok := v.(string); ok && strings.TrimSpace(s) != "" {
-				existingDefaults = strings.TrimSpace(s)
+	// Write nested block fields grouped by block name
+	if len(blockFields) > 0 {
+		// Gather unique block names in order
+		seen := map[string]bool{}
+		var blockOrder []string
+		for _, bf := range blockFields {
+			if !seen[bf.blockName] {
+				seen[bf.blockName] = true
+				blockOrder = append(blockOrder, bf.blockName)
 			}
 		}
-
-		b.WriteString("\n  eks_managed_node_group_defaults = {\n")
-		b.WriteString(fmt.Sprintf("    desired_size    = %d\n", desiredSize))
-		b.WriteString(fmt.Sprintf("    min_size        = %d\n", minSize))
-		b.WriteString(fmt.Sprintf("    max_size        = %d\n", maxSize))
-		b.WriteString(fmt.Sprintf("    instance_types  = [\"%s\"]\n", instanceType))
-		b.WriteString(fmt.Sprintf("    capacity_type   = \"%s\"\n", capacityType))
-		b.WriteString(fmt.Sprintf("    ami_type        = \"%s\"\n", amiType))
-		b.WriteString(fmt.Sprintf("    disk_size       = %d\n", diskSize))
-
-		// Merge in any extra config from the HCL field (strip outer braces)
-		if existingDefaults != "" {
-			inner := existingDefaults
-			if strings.HasPrefix(inner, "{") && strings.HasSuffix(inner, "}") {
-				inner = inner[1 : len(inner)-1]
-			}
-			inner = strings.TrimSpace(inner)
-			if inner != "" {
-				b.WriteString("\n")
-				for _, line := range strings.Split(inner, "\n") {
-					b.WriteString("    " + strings.TrimSpace(line) + "\n")
-				}
-			}
-		}
-		b.WriteString("  }\n")
-
-		// Auto-generate a default node group if eks_managed_node_groups is empty
-		hasCustomGroups := false
-		if v, ok := inputs["eks_managed_node_groups"]; ok {
-			if s, ok := v.(string); ok && strings.TrimSpace(s) != "" {
-				hasCustomGroups = true
-			}
-		}
-		if !hasCustomGroups {
-			subnetIDs := getInputStr(inputs, "subnet_ids", "")
-			b.WriteString("\n  eks_managed_node_groups = {\n")
-			b.WriteString("    default = {\n")
-			if subnetIDs != "" {
-				parts := strings.Split(subnetIDs, ",")
-				var quoted []string
-				for _, p := range parts {
-					p = strings.TrimSpace(p)
-					if p != "" {
-						quoted = append(quoted, fmt.Sprintf("\"%s\"", p))
+		for _, blockName := range blockOrder {
+			b.WriteString(fmt.Sprintf("\n  %s {\n", blockName))
+			for _, bf := range blockFields {
+				if bf.blockName == blockName {
+					line := formatHCLValue(bf.fieldName, bf.fieldType, bf.val)
+					// re-indent: add two more spaces
+					for _, l := range strings.Split(strings.TrimRight(line, "\n"), "\n") {
+						b.WriteString("  " + l + "\n")
 					}
 				}
-				b.WriteString(fmt.Sprintf("      subnet_ids = [%s]\n", strings.Join(quoted, ", ")))
 			}
-			b.WriteString("    }\n")
 			b.WriteString("  }\n")
 		}
 	}
@@ -192,7 +159,7 @@ func GenerateHCLWithOptions(schema *ResourceSchema, inputs map[string]any, env s
 	if schema.CommonInputs.Tags {
 		b.WriteString("\n  tags = {\n")
 		b.WriteString(fmt.Sprintf("    Environment = \"%s\"\n", env))
-		b.WriteString("    ManagedBy   = \"GrandForm\"\n")
+		b.WriteString("    ManagedBy   = \"Wolkvorm\"\n")
 		b.WriteString("  }\n")
 	}
 
@@ -286,8 +253,18 @@ func formatHCLValue(name string, fieldType string, value any) string {
 		return fmt.Sprintf("  %s = \"%s\"\n", name, strVal)
 
 	case "multiline":
-		// Multiline is stored as-is (special handling per resource)
-		return fmt.Sprintf("  %s = \"%s\"\n", name, fmt.Sprintf("%v", value))
+		strVal := fmt.Sprintf("%v", value)
+		// Use heredoc for multi-line values (e.g. JSON policy documents)
+		if strings.Contains(strVal, "\n") {
+			var b strings.Builder
+			b.WriteString(fmt.Sprintf("  %s = <<-EOT\n", name))
+			for _, line := range strings.Split(strVal, "\n") {
+				b.WriteString("    " + line + "\n")
+			}
+			b.WriteString("  EOT\n")
+			return b.String()
+		}
+		return fmt.Sprintf("  %s = \"%s\"\n", name, strVal)
 
 	case "hcl":
 		return formatHCLRaw(name, value)

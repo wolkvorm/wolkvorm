@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wolkvorm — Shape Your Cloud Infrastructure</title>
+    <meta name="description" content="Deploy infrastructure to any cloud through simple forms. No HCL knowledge required. Wolkvorm turns Terraform complexity into visual simplicity.">
+    <meta name="keywords" content="terraform, terragrunt, infrastructure as code, IaC, AWS, cloud, form-based, no-code, DevOps">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: rgba(17, 24, 39, 0.7);
+            --bg-card-hover: rgba(30, 41, 59, 0.8);
+            --accent: #f97316;
+            --accent-light: #fb923c;
+            --accent-glow: rgba(249, 115, 22, 0.15);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: rgba(148, 163, 184, 0.1);
+            --border-light: rgba(148, 163, 184, 0.2);
+            --green: #22c55e;
+            --red: #ef4444;
+            --blue: #3b82f6;
+            --purple: #a855f7;
+            --gradient-1: linear-gradient(135deg, #f97316, #fb923c);
+            --gradient-2: linear-gradient(135deg, #0ea5e9, #3b82f6);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ============================================
+           GRID BACKGROUND
+           ============================================ */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(148, 163, 184, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .grid-bg::after {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 30% 20%, rgba(249, 115, 22, 0.08) 0%, transparent 50%),
+                        radial-gradient(ellipse at 70% 60%, rgba(14, 165, 233, 0.06) 0%, transparent 50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ============================================
+           NAVIGATION
+           ============================================ */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1rem 2rem;
+            backdrop-filter: blur(20px);
+            background: rgba(10, 14, 26, 0.8);
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            padding: 0.7rem 2rem;
+            background: rgba(10, 14, 26, 0.95);
+        }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo img {
+            -webkit-text-fill-color: initial;
+        }
+
+        .logo span {
+            -webkit-text-fill-color: var(--text-primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-cta {
+            padding: 0.5rem 1.2rem;
+            background: var(--gradient-1);
+            color: white !important;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(249, 115, 22, 0.4);
+        }
+
+        /* ============================================
+           SECTIONS COMMON
+           ============================================ */
+        section {
+            position: relative;
+            z-index: 1;
+            padding: 4rem 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: var(--accent-glow);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            letter-spacing: -1px;
+        }
+
+        .section-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            line-height: 1.7;
+        }
+
+        /* Fade-in animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Slide-in from left */
+        .slide-in-left {
+            opacity: 0;
+            transform: translateX(-60px);
+            transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .slide-in-left.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Slide-in from right */
+        .slide-in-right {
+            opacity: 0;
+            transform: translateX(60px);
+            transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .slide-in-right.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Scale-in animation */
+        .scale-in {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .scale-in.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Staggered children animation */
+        .stagger-children > * {
+            opacity: 0;
+            transform: translateY(25px);
+            transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .stagger-children.visible > * {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stagger-children.visible > *:nth-child(1) { transition-delay: 0s; }
+        .stagger-children.visible > *:nth-child(2) { transition-delay: 0.08s; }
+        .stagger-children.visible > *:nth-child(3) { transition-delay: 0.16s; }
+        .stagger-children.visible > *:nth-child(4) { transition-delay: 0.24s; }
+        .stagger-children.visible > *:nth-child(5) { transition-delay: 0.32s; }
+        .stagger-children.visible > *:nth-child(6) { transition-delay: 0.4s; }
+        .stagger-children.visible > *:nth-child(7) { transition-delay: 0.48s; }
+        .stagger-children.visible > *:nth-child(8) { transition-delay: 0.56s; }
+
+        /* ============================================
+           HERO SECTION
+           ============================================ */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 5rem;
+            padding-bottom: 2rem;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--green);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.5); }
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -2px;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 .highlight {
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 2.5rem;
+            max-width: 500px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.9rem 2rem;
+            background: var(--gradient-1);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(249, 115, 22, 0.4);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.9rem 2rem;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-muted);
+        }
+
+        .hero-visual {
+            position: relative;
+            perspective: 1000px;
+            animation: hero-float 6s ease-in-out infinite;
+        }
+
+        @keyframes hero-float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+
+        /* ---- Infrastructure Graph ---- */
+        .infra-graph {
+            position: relative;
+            width: 100%;
+            height: 420px;
+        }
+
+        .infra-graph svg.graph-lines {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .graph-line {
+            stroke: rgba(148, 163, 184, 0.15);
+            stroke-width: 1.5;
+            fill: none;
+        }
+
+        .graph-line-glow {
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 6 8;
+            stroke-dashoffset: 0;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        .graph-line-glow.active {
+            opacity: 1;
+            animation: dash-flow 1.2s linear infinite;
+        }
+
+        @keyframes dash-flow {
+            to { stroke-dashoffset: -28; }
+        }
+
+        .infra-node {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            z-index: 2;
+            opacity: 0;
+            transform: scale(0.5) translateY(10px);
+            transition: opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1);
+        }
+
+        .infra-node.visible {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        .node-ring {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 2px solid;
+            background: rgba(0, 0, 0, 0.4);
+            position: relative;
+            transition: box-shadow 0.5s ease;
+        }
+
+        .infra-node.visible .node-ring {
+            box-shadow: 0 0 25px var(--node-color, rgba(249,115,22,0.3));
+        }
+
+        .node-ring::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 18px;
+            background: conic-gradient(from 0deg, transparent, var(--node-color, rgba(249,115,22,0.4)), transparent);
+            z-index: -1;
+            opacity: 0;
+            animation: none;
+        }
+
+        .infra-node.visible .node-ring::after {
+            opacity: 1;
+            animation: ring-spin 4s linear infinite;
+        }
+
+        @keyframes ring-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .node-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+
+        .node-status {
+            font-size: 0.58rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 7px;
+            border-radius: 6px;
+            background: rgba(100,116,139,0.2);
+            color: var(--text-muted);
+            transition: all 0.4s ease;
+        }
+
+        .node-status.active {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--green);
+        }
+
+        .node-status.soon {
+            background: rgba(168, 85, 247, 0.15);
+            color: var(--purple);
+        }
+
+        .hero-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.15), transparent 70%);
+            z-index: -1;
+            filter: blur(60px);
+        }
+
+        /* ============================================
+           PROBLEM / SOLUTION
+           ============================================ */
+        .problem-solution {
+            background: linear-gradient(180deg, transparent 0%, rgba(17, 24, 39, 0.5) 50%, transparent 100%);
+        }
+
+        .ps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .ps-card {
+            padding: 2rem;
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .ps-card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(249, 115, 22, 0.4);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(249, 115, 22, 0.08), 0 0 0 1px rgba(249, 115, 22, 0.1);
+        }
+
+        .ps-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: var(--accent-glow);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            border-radius: 12px;
+            margin-bottom: 1.2rem;
+        }
+
+        .ps-card h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.7rem;
+        }
+
+        .ps-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           HOW IT WORKS
+           ============================================ */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .step-card {
+            text-align: center;
+            padding: 2.5rem 2rem;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .step-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .step-number {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            border-radius: 50%;
+            color: white;
+            box-shadow: 0 8px 25px rgba(249, 115, 22, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .step-card:hover .step-number {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(249, 115, 22, 0.4);
+        }
+
+        .step-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.7rem;
+        }
+
+        .step-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .step-connector {
+            display: none;
+        }
+
+        /* ============================================
+           SERVICES GRID
+           ============================================ */
+        .services-categories {
+            margin-top: 3rem;
+        }
+
+        .service-category {
+            margin-bottom: 2rem;
+        }
+
+        .service-category-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.8rem;
+        }
+
+        .service-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.8rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+            cursor: default;
+            overflow: hidden;
+        }
+
+        .service-item:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(249, 115, 22, 0.1);
+        }
+
+        .service-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: rgba(249, 115, 22, 0.1);
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .service-item span {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .coming-soon-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.6rem;
+            background: rgba(168, 85, 247, 0.15);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--purple);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ============================================
+           FEATURES
+           ============================================ */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            padding: 2rem;
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            display: flex;
+            gap: 1.2rem;
+        }
+
+        .feature-card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(249, 115, 22, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(249, 115, 22, 0.1);
+        }
+
+        .feature-card:hover .feature-icon {
+            background: rgba(249, 115, 22, 0.2);
+            border-color: rgba(249, 115, 22, 0.4);
+            transform: scale(1.1) rotate(-3deg);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            border-radius: 12px;
+            background: var(--accent-glow);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .feature-card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           COMPARISON TABLE
+           ============================================ */
+        .comparison {
+            background: linear-gradient(180deg, transparent 0%, rgba(17, 24, 39, 0.5) 50%, transparent 100%);
+        }
+
+        .comparison-table {
+            width: 100%;
+            margin-top: 3rem;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-table th {
+            background: rgba(0, 0, 0, 0.3);
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .comparison-table th:first-child,
+        .comparison-table td:first-child {
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table th.highlight-col {
+            background: rgba(249, 115, 22, 0.15);
+            color: var(--accent);
+        }
+
+        .comparison-table td.highlight-col {
+            background: rgba(249, 115, 22, 0.05);
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .comparison-table td {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .check { color: var(--green); font-size: 1.2rem; }
+        .cross { color: var(--red); font-size: 1.2rem; }
+        .partial { color: var(--text-muted); font-size: 0.8rem; }
+        .na-dash { color: var(--text-muted); font-size: 1rem; font-weight: 300; }
+
+        /* ============================================
+           ROADMAP
+           ============================================ */
+        .roadmap-items {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .roadmap-card {
+            padding: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .roadmap-card:hover {
+            border-color: var(--purple);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(168, 85, 247, 0.08), 0 0 0 1px rgba(168, 85, 247, 0.1);
+        }
+
+        .roadmap-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .roadmap-card h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .roadmap-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           CTA SECTION
+           ============================================ */
+        .cta-section {
+            text-align: center;
+            padding: 6rem 2rem;
+        }
+
+        .cta-section h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 1rem;
+        }
+
+        .cta-section p {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            margin-bottom: 2.5rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 300px;
+            background: radial-gradient(ellipse, rgba(249, 115, 22, 0.1), transparent 70%);
+            filter: blur(80px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+        footer {
+            position: relative;
+            z-index: 1;
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-copy {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 1024px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+
+            .hero p {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .hero-visual {
+                max-width: 500px;
+                margin: 0 auto;
+                animation: none;
+            }
+
+            .infra-graph {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1.5rem 0.5rem;
+                height: auto;
+                min-height: auto;
+                justify-items: center;
+            }
+
+            .infra-graph svg.graph-lines {
+                display: none;
+            }
+
+            .infra-node {
+                position: relative !important;
+                left: auto !important;
+                top: auto !important;
+            }
+
+            #n-gcp { order: 1; }
+            #n-aws { order: 2; }
+            #n-azure { order: 3; }
+            #n-huawei { order: 4; }
+            #n-wolk { order: 5; }
+            #n-do { order: 6; }
+            #n-helm { order: 7; grid-column: 2; }
+        }
+
+        @media (max-width: 900px) {
+            .ps-grid,
+            .steps-grid,
+            .roadmap-items {
+                grid-template-columns: 1fr;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .cta-section h2 {
+                font-size: 2rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .comparison-table {
+                font-size: 0.8rem;
+            }
+
+            .comparison-table th,
+            .comparison-table td {
+                padding: 0.7rem 0.5rem;
+            }
+
+            .footer-inner {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .hero-visual {
+                min-height: auto;
+            }
+
+            .infra-graph {
+                gap: 1rem 0.25rem;
+            }
+        }
+
+        /* ============================================
+           FLOATING PARTICLES
+           ============================================ */
+        .particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            opacity: 0.2;
+            pointer-events: none;
+            z-index: 0;
+            animation: float-particle linear infinite;
+        }
+
+        @keyframes float-particle {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.2; }
+            90% { opacity: 0.2; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Grid Background -->
+    <div class="grid-bg"></div>
+
+    <!-- Floating Particles -->
+    <div class="particle" style="left: 10%; animation-duration: 20s; animation-delay: 0s;"></div>
+    <div class="particle" style="left: 25%; animation-duration: 25s; animation-delay: 3s;"></div>
+    <div class="particle" style="left: 40%; animation-duration: 18s; animation-delay: 6s;"></div>
+    <div class="particle" style="left: 55%; animation-duration: 22s; animation-delay: 1s;"></div>
+    <div class="particle" style="left: 70%; animation-duration: 28s; animation-delay: 4s;"></div>
+    <div class="particle" style="left: 85%; animation-duration: 21s; animation-delay: 7s;"></div>
+    <div class="particle" style="left: 95%; animation-duration: 24s; animation-delay: 2s;"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="nav-inner">
+            <div class="logo"><img src="wolkvorm-logo.png?v=1" alt="Wolkvorm" style="width:28px;height:28px;border-radius:6px;">Wolk<span>vorm</span></div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#comparison">Compare</a></li>
+                <li><a href="#roadmap">Roadmap</a></li>
+                <li><a href="#cta" class="nav-cta">Get Started →</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- ==========================================
+         HERO SECTION
+         ========================================== -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-grid">
+                <div class="hero-content slide-in-left">
+                    <div class="hero-badge">Open Source & Free</div>
+                    <h1>
+                        Shape Your<br>
+                        <span class="highlight">Cloud Infrastructure</span>
+                    </h1>
+                    <p>
+                        Deploy infrastructure to any cloud through simple forms. No HCL knowledge required.
+                        Wolkvorm turns Terraform complexity into visual simplicity.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="#cta" class="btn-primary">Get Started →</a>
+                        <a href="#how-it-works" class="btn-secondary">How It Works</a>
+                    </div>
+                </div>
+                <div class="hero-visual slide-in-right">
+                    <div class="hero-glow"></div>
+                    <div class="infra-graph" id="infraGraph">
+                        <svg class="graph-lines" id="graphSvg"></svg>
+                        <!-- Wolkvorm - center hub -->
+                        <div class="infra-node" id="n-wolk" style="left:50%;top:38%;--node-color:rgba(249,115,22,0.5);">
+                            <div class="node-ring node-ring-logo" style="border-color:rgba(249,115,22,0.5);">
+                                <img src="wolkvorm-logo.png?v=1" alt="W" style="width:36px;height:36px;border-radius:6px;">
+                            </div>
+                            <div class="node-label">Wolkvorm</div>
+                            <div class="node-status" id="s-wolk">Hub</div>
+                        </div>
+                        <!-- AWS - top -->
+                        <div class="infra-node" id="n-aws" style="left:50%;top:2%;--node-color:rgba(255,153,0,0.5);">
+                            <div class="node-ring" style="border-color:rgba(255,153,0,0.5);">☁️</div>
+                            <div class="node-label">AWS</div>
+                            <div class="node-status" id="s-aws">Pending</div>
+                        </div>
+                        <!-- Azure - top right -->
+                        <div class="infra-node" id="n-azure" style="left:85%;top:18%;--node-color:rgba(0,120,212,0.5);">
+                            <div class="node-ring" style="border-color:rgba(0,120,212,0.5);">🔷</div>
+                            <div class="node-label">Azure</div>
+                            <div class="node-status" id="s-azure">Pending</div>
+                        </div>
+                        <!-- Digital Ocean - bottom right -->
+                        <div class="infra-node" id="n-do" style="left:85%;top:58%;--node-color:rgba(0,105,255,0.5);">
+                            <div class="node-ring" style="border-color:rgba(0,105,255,0.5);">💧</div>
+                            <div class="node-label">DigitalOcean</div>
+                            <div class="node-status" id="s-do">Pending</div>
+                        </div>
+                        <!-- Helm - bottom -->
+                        <div class="infra-node" id="n-helm" style="left:50%;top:74%;--node-color:rgba(0,152,209,0.5);">
+                            <div class="node-ring" style="border-color:rgba(0,152,209,0.5);">⎈</div>
+                            <div class="node-label">Helm</div>
+                            <div class="node-status" id="s-helm">Pending</div>
+                        </div>
+                        <!-- Huawei Cloud - bottom left -->
+                        <div class="infra-node" id="n-huawei" style="left:15%;top:58%;--node-color:rgba(224,20,53,0.5);">
+                            <div class="node-ring" style="border-color:rgba(224,20,53,0.5);">🌺</div>
+                            <div class="node-label">Huawei</div>
+                            <div class="node-status" id="s-huawei">Pending</div>
+                        </div>
+                        <!-- GCP - top left -->
+                        <div class="infra-node" id="n-gcp" style="left:15%;top:18%;--node-color:rgba(66,133,244,0.5);">
+                            <div class="node-ring" style="border-color:rgba(66,133,244,0.5);">🌤️</div>
+                            <div class="node-label">GCP</div>
+                            <div class="node-status" id="s-gcp">Pending</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         PROBLEM & SOLUTION
+         ========================================== -->
+    <section class="problem-solution" id="why" style="padding-top: 2rem;">
+        <div class="container">
+            <div class="fade-in">
+                <div class="section-label">⚡ Why Wolkvorm</div>
+                <h2 class="section-title">Infrastructure Shouldn't<br>Require a PhD in HCL</h2>
+                <p class="section-subtitle">
+                    Terraform is powerful but complex. Wolkvorm turns every resource into a simple form — fill, click, deploy.
+                </p>
+            </div>
+            <div class="ps-grid fade-in stagger-children">
+                <div class="ps-card">
+                    <div class="ps-icon">📝</div>
+                    <h3>No Code Required</h3>
+                    <p>Stop writing verbose HCL files. Just fill out a form with your desired configuration and Wolkvorm handles the rest.</p>
+                </div>
+                <div class="ps-card">
+                    <div class="ps-icon">🔄</div>
+                    <h3>Plan & Apply Built-In</h3>
+                    <p>See exactly what will change before applying. Real-time streaming logs show every step of your deployment.</p>
+                </div>
+                <div class="ps-card">
+                    <div class="ps-icon">📊</div>
+                    <h3>Visual Infrastructure</h3>
+                    <p>Interactive graph shows all resources and their relationships. See how your VPC connects to subnets, security groups, and EC2 instances.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         HOW IT WORKS
+         ========================================== -->
+    <section id="how-it-works">
+        <div class="container">
+            <div class="fade-in" style="text-align: center;">
+                <div class="section-label">🚀 How It Works</div>
+                <h2 class="section-title">Three Steps to Deploy</h2>
+                <p class="section-subtitle" style="margin: 0 auto;">
+                    From zero to deployed infrastructure in minutes, not hours.
+                </p>
+            </div>
+            <div class="steps-grid fade-in stagger-children">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Choose a Resource</h3>
+                    <p>Pick from 25+ AWS services — EC2, EKS, S3, RDS, Lambda, VPC, and more.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Fill the Form</h3>
+                    <p>Configure your resource with guided form fields. Smart defaults and validations prevent mistakes.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Deploy</h3>
+                    <p>Click apply and watch real-time logs. Wolkvorm generates Terragrunt HCL and manages state automatically.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         SUPPORTED SERVICES
+         ========================================== -->
+    <section id="services">
+        <div class="container">
+            <div class="fade-in">
+                <div class="section-label">☁️ Supported Services</div>
+                <h2 class="section-title">25+ AWS Services Ready to Deploy</h2>
+                <p class="section-subtitle">
+                    Every service is backed by official Terraform AWS modules with best-practice defaults.
+                </p>
+            </div>
+
+            <div class="services-categories fade-in">
+                <div class="service-category">
+                    <div class="service-category-title">Compute</div>
+                    <div class="services-grid">
+                        <div class="service-item"><div class="service-icon">🖥️</div><span>EC2</span></div>
+                        <div class="service-item"><div class="service-icon">☸️</div><span>EKS</span></div>
+                        <div class="service-item"><div class="service-icon">🐳</div><span>ECS</span></div>
+                        <div class="service-item"><div class="service-icon">⚡</div><span>Lambda</span></div>
+                        <div class="service-item"><div class="service-icon">📈</div><span>Auto Scaling</span></div>
+                    </div>
+                </div>
+
+                <div class="service-category">
+                    <div class="service-category-title">Storage & Database</div>
+                    <div class="services-grid">
+                        <div class="service-item"><div class="service-icon">🪣</div><span>S3</span></div>
+                        <div class="service-item"><div class="service-icon">🗄️</div><span>RDS</span></div>
+                        <div class="service-item"><div class="service-icon">⚙️</div><span>DynamoDB</span></div>
+                        <div class="service-item"><div class="service-icon">⚡</div><span>ElastiCache</span></div>
+                    </div>
+                </div>
+
+                <div class="service-category">
+                    <div class="service-category-title">Networking</div>
+                    <div class="services-grid">
+                        <div class="service-item"><div class="service-icon">🌐</div><span>VPC</span></div>
+                        <div class="service-item"><div class="service-icon">⚖️</div><span>ALB</span></div>
+                        <div class="service-item"><div class="service-icon">🌍</div><span>CloudFront</span></div>
+                        <div class="service-item"><div class="service-icon">🔀</div><span>Route 53</span></div>
+                        <div class="service-item"><div class="service-icon">🛡️</div><span>Security Group</span></div>
+                        <div class="service-item"><div class="service-icon">🔗</div><span>API Gateway</span></div>
+                    </div>
+                </div>
+
+                <div class="service-category">
+                    <div class="service-category-title">Security & Identity</div>
+                    <div class="services-grid">
+                        <div class="service-item"><div class="service-icon">👤</div><span>IAM Role</span></div>
+                        <div class="service-item"><div class="service-icon">📋</div><span>IAM Policy</span></div>
+                        <div class="service-item"><div class="service-icon">🔑</div><span>KMS</span></div>
+                        <div class="service-item"><div class="service-icon">🤫</div><span>Secrets Manager</span></div>
+                        <div class="service-item"><div class="service-icon">📜</div><span>ACM</span></div>
+                        <div class="service-item"><div class="service-icon">🔐</div><span>Key Pair</span></div>
+                    </div>
+                </div>
+
+                <div class="service-category">
+                    <div class="service-category-title">Messaging & Containers</div>
+                    <div class="services-grid">
+                        <div class="service-item"><div class="service-icon">📬</div><span>SNS</span></div>
+                        <div class="service-item"><div class="service-icon">📨</div><span>SQS</span></div>
+                        <div class="service-item"><div class="service-icon">📦</div><span>ECR</span></div>
+                    </div>
+                </div>
+
+                <div class="service-category">
+                    <div class="service-category-title">Coming Soon</div>
+                    <div class="services-grid">
+                        <div class="service-item" style="border-color: rgba(168, 85, 247, 0.3);">
+                            <div class="service-icon" style="background: rgba(168, 85, 247, 0.15);">⎈</div>
+                            <span>Helm Charts</span>
+                            <span class="coming-soon-badge">Soon</span>
+                        </div>
+                        <div class="service-item" style="border-color: rgba(168, 85, 247, 0.3);">
+                            <div class="service-icon" style="background: rgba(168, 85, 247, 0.15);">☁️</div>
+                            <span>GCP</span>
+                            <span class="coming-soon-badge">Soon</span>
+                        </div>
+                        <div class="service-item" style="border-color: rgba(168, 85, 247, 0.3);">
+                            <div class="service-icon" style="background: rgba(168, 85, 247, 0.15);">🔷</div>
+                            <span>Azure</span>
+                            <span class="coming-soon-badge">Soon</span>
+                        </div>
+                        <div class="service-item" style="border-color: rgba(168, 85, 247, 0.3);">
+                            <div class="service-icon" style="background: rgba(168, 85, 247, 0.15);">💧</div>
+                            <span>DigitalOcean</span>
+                            <span class="coming-soon-badge">Soon</span>
+                        </div>
+                        <div class="service-item" style="border-color: rgba(168, 85, 247, 0.3);">
+                            <div class="service-icon" style="background: rgba(168, 85, 247, 0.15);">🌺</div>
+                            <span>Huawei Cloud</span>
+                            <span class="coming-soon-badge">Soon</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         FEATURES
+         ========================================== -->
+    <section id="features">
+        <div class="container">
+            <div class="fade-in">
+                <div class="section-label">✨ Features</div>
+                <h2 class="section-title">Everything You Need to<br>Manage Infrastructure</h2>
+                <p class="section-subtitle">
+                    Wolkvorm isn't just forms — it's a complete infrastructure management platform.
+                </p>
+            </div>
+            <div class="features-grid fade-in stagger-children">
+                <div class="feature-card">
+                    <div class="feature-icon">📋</div>
+                    <div>
+                        <h3>Form-Based Deployment</h3>
+                        <p>No HCL, no YAML — just human-friendly forms. Auto-generates Terragrunt configurations behind the scenes.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔗</div>
+                    <div>
+                        <h3>Resource Graph</h3>
+                        <p>Visual dependency graph showing how your resources connect. See VPCs, subnets, security groups, and instances in one view.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <div>
+                        <h3>Cost Dashboard</h3>
+                        <p>Track infrastructure costs across all your resources. Know exactly what you're spending before and after changes.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✅</div>
+                    <div>
+                        <h3>Approval Workflows</h3>
+                        <p>Require team approval before applying infrastructure changes. Perfect for production environments and compliance.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📜</div>
+                    <div>
+                        <h3>Audit Logs</h3>
+                        <p>Complete history of every action — who created, modified, or destroyed what, and when. Full accountability.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <div>
+                        <h3>Policy Engine</h3>
+                        <p>Define and enforce naming conventions, required tags, allowed instance types, and security policies across your team.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📦</div>
+                    <div>
+                        <h3>Import Existing Resources</h3>
+                        <p>Already have AWS resources? Import them into Wolkvorm and start managing them through the visual interface.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚙️</div>
+                    <div>
+                        <h3>Multi-Environment</h3>
+                        <p>Manage dev, staging, and production environments from one dashboard. Consistent configuration across all stages.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         COMPARISON
+         ========================================== -->
+    <section class="comparison" id="comparison">
+        <div class="container">
+            <div class="fade-in" style="text-align: center;">
+                <div class="section-label">📊 Compare</div>
+                <h2 class="section-title">Why Choose Wolkvorm?</h2>
+                <p class="section-subtitle" style="margin: 0 auto;">
+                    See how Wolkvorm compares to other infrastructure management approaches.
+                </p>
+            </div>
+            <table class="comparison-table fade-in">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th class="highlight-col">Wolkvorm</th>
+                        <th>Terraform CLI</th>
+                        <th>AWS Console</th>
+                        <th>Spacelift</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>No code required</td>
+                        <td class="highlight-col"><span class="check">✓</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="cross">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td>State management</td>
+                        <td class="highlight-col"><span class="check">✓</span></td>
+                        <td><span class="partial">Manual</span></td>
+                        <td><span class="na-dash">—</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Visual graph</td>
+                        <td class="highlight-col"><span class="check">✓</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="partial">Limited</span></td>
+                    </tr>
+                    <tr>
+                        <td>Cost tracking</td>
+                        <td class="highlight-col"><span class="check">✓</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="partial">Separate</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Self-hosted</td>
+                        <td class="highlight-col"><span class="check">✓</span></td>
+                        <td><span class="na-dash">—</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td>Approval workflows</td>
+                        <td class="highlight-col"><span class="check">✓</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="partial">Limited</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Free & open-source</td>
+                        <td class="highlight-col"><span class="check">✓</span></td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         ROADMAP
+         ========================================== -->
+    <section id="roadmap">
+        <div class="container">
+            <div class="fade-in" style="text-align: center;">
+                <div class="section-label">🗺️ Roadmap</div>
+                <h2 class="section-title">What's Coming Next</h2>
+                <p class="section-subtitle" style="margin: 0 auto;">
+                    Wolkvorm is evolving. Here's what we're building next.
+                </p>
+            </div>
+            <div class="roadmap-items fade-in stagger-children">
+                <div class="roadmap-card">
+                    <div class="roadmap-icon">⎈</div>
+                    <h3>Helm Integration</h3>
+                    <p>Deploy Kubernetes applications through forms. Configure Helm charts visually — same simplicity, now for K8s.</p>
+                </div>
+                <div class="roadmap-card">
+                    <div class="roadmap-icon">🤖</div>
+                    <h3>AI Assistant</h3>
+                    <p>Describe your infrastructure in natural language. "I need a production-ready EKS cluster" — done.</p>
+                </div>
+                <div class="roadmap-card">
+                    <div class="roadmap-icon">☁️</div>
+                    <h3>Multi-Cloud</h3>
+                    <p>Extend beyond AWS. Deploy to Google Cloud and Azure with the same form-based experience.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         CTA
+         ========================================== -->
+    <section class="cta-section" id="cta">
+        <div class="container" style="position: relative;">
+            <div class="cta-glow"></div>
+            <div class="fade-in">
+                <h2>Ready to Shape<br>Your Cloud?</h2>
+                <p>Start deploying infrastructure in minutes. Open source, self-hosted, and completely free.</p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <a href="https://github.com/wolkvorm" class="btn-primary" target="_blank">⭐ Star on GitHub</a>
+                    <a href="#" class="btn-secondary">📖 Read the Docs</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-inner">
+            <div class="logo" style="font-size: 1.2rem;">Wolk<span>vorm</span></div>
+            <div class="footer-links">
+                <a href="https://github.com/wolkvorm" target="_blank">GitHub</a>
+                <a href="#">Documentation</a>
+                <a href="#">Community</a>
+            </div>
+            <div class="footer-copy">
+                © 2026 Wolkvorm. Built with ❤️
+            </div>
+        </div>
+    </footer>
+
+    <!-- ============================================
+         JavaScript
+         ============================================ -->
+    <script>
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Animate on scroll — fade-in, slide-in, scale-in
+        const animatedElements = document.querySelectorAll('.fade-in, .slide-in-left, .slide-in-right, .scale-in, .stagger-children');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        });
+
+        animatedElements.forEach(el => observer.observe(el));
+
+        // Trigger hero animations immediately
+        setTimeout(() => {
+            document.querySelectorAll('.hero .slide-in-left, .hero .slide-in-right').forEach(el => {
+                el.classList.add('visible');
+            });
+        }, 200);
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // =========================================
+        //  Animated Infrastructure Graph
+        // =========================================
+        (function() {
+            const svg = document.getElementById('graphSvg');
+            const graph = document.getElementById('infraGraph');
+            // Node definitions
+            const nodes = [
+                { id: 'wolk',   color: 'rgba(249,115,22,0.6)',   isHub: true },
+                { id: 'aws',    color: 'rgba(255,153,0,0.6)',    soon: false },
+                { id: 'azure',  color: 'rgba(0,120,212,0.6)',    soon: true },
+                { id: 'do',     color: 'rgba(0,105,255,0.6)',    soon: true },
+                { id: 'helm',   color: 'rgba(0,152,209,0.6)',    soon: true },
+                { id: 'huawei', color: 'rgba(224,20,53,0.6)',    soon: true },
+                { id: 'gcp',    color: 'rgba(66,133,244,0.6)',   soon: true }
+            ];
+
+            // Edges: all platforms connect to Wolkvorm center hub
+            const edges = [
+                ['wolk', 'aws',    'rgba(255,153,0,0.45)'],
+                ['wolk', 'azure',  'rgba(0,120,212,0.35)'],
+                ['wolk', 'do',     'rgba(0,105,255,0.35)'],
+                ['wolk', 'helm',   'rgba(0,152,209,0.35)'],
+                ['wolk', 'huawei', 'rgba(224,20,53,0.35)'],
+                ['wolk', 'gcp',    'rgba(66,133,244,0.35)']
+            ];
+
+            // Get center position of a node element
+            function getCenter(id) {
+                const el = document.getElementById('n-' + id);
+                const gRect = graph.getBoundingClientRect();
+                const nRect = el.getBoundingClientRect();
+                return {
+                    x: nRect.left - gRect.left + nRect.width / 2,
+                    y: nRect.top - gRect.top + nRect.height / 2
+                };
+            }
+
+            // Draw SVG lines after layout
+            function drawLines() {
+                svg.innerHTML = '';
+                edges.forEach(([from, to, color], i) => {
+                    const a = getCenter(from);
+                    const b = getCenter(to);
+
+                    // Static dim line
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
+                    line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
+                    line.setAttribute('class', 'graph-line');
+                    svg.appendChild(line);
+
+                    // Animated glow line
+                    const glow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    glow.setAttribute('x1', a.x); glow.setAttribute('y1', a.y);
+                    glow.setAttribute('x2', b.x); glow.setAttribute('y2', b.y);
+                    glow.setAttribute('class', 'graph-line-glow');
+                    glow.setAttribute('stroke', color);
+                    glow.id = 'edge-' + i;
+                    svg.appendChild(glow);
+                });
+            }
+
+            function activateNode(idx) {
+                if (idx >= nodes.length) {
+                    // All done! Pause then reset
+                    setTimeout(resetAll, 3500);
+                    return;
+                }
+
+                const node = nodes[idx];
+                const el = document.getElementById('n-' + node.id);
+                const status = document.getElementById('s-' + node.id);
+
+                // Show node
+                el.classList.add('visible');
+
+                // After a beat, activate status + connected edges
+                setTimeout(() => {
+                    if (node.isHub) {
+                        // Hub stays as "Hub"
+                    } else if (node.soon) {
+                        status.textContent = 'Soon';
+                        status.classList.add('soon');
+                    } else {
+                        status.textContent = 'Active';
+                        status.classList.add('active');
+                    }
+                    status.classList.add('active');
+
+                    // Activate edges connected to this node
+                    edges.forEach((edge, ei) => {
+                        const [from, to] = edge;
+                        const fromActive = document.getElementById('n-' + from).classList.contains('visible') &&
+                                          document.getElementById('s-' + from).classList.contains('active');
+                        const toActive = document.getElementById('n-' + to).classList.contains('visible') &&
+                                        document.getElementById('s-' + to).classList.contains('active');
+                        if (fromActive && toActive) {
+                            document.getElementById('edge-' + ei).classList.add('active');
+                        }
+                    });
+
+                    // Schedule next node
+                    setTimeout(() => activateNode(idx + 1), 700);
+                }, 500);
+            }
+
+            function resetAll() {
+                // Fade out all nodes
+                nodes.forEach(n => {
+                    const el = document.getElementById('n-' + n.id);
+                    const s = document.getElementById('s-' + n.id);
+                    el.classList.remove('visible');
+                    s.textContent = n.isHub ? 'Hub' : 'Pending';
+                    s.classList.remove('active', 'soon');
+                });
+                // Remove edge animations
+                edges.forEach((_, i) => {
+                    const e = document.getElementById('edge-' + i);
+                    if (e) e.classList.remove('active');
+                });
+                // Restart after pause
+                setTimeout(() => activateNode(0), 1200);
+            }
+
+            // Initialize on load
+            setTimeout(() => {
+                drawLines();
+                activateNode(0);
+            }, 1000);
+
+            // Redraw lines on resize
+            window.addEventListener('resize', drawLines);
+        })();
+    </script>
+</body>
+</html>

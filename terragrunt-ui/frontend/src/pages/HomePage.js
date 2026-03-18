@@ -63,7 +63,7 @@ function HomePage() {
           <div>
             <h1 style={styles.title}>AWS Resources</h1>
             <p style={styles.subtitle}>
-              Select a resource to configure and deploy with Terragrunt
+              Select a resource to configure and deploy with Terraform
             </p>
           </div>
           <div style={styles.countBadge}>

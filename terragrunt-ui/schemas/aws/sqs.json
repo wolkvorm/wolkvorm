@@ -6,7 +6,7 @@
   "icon": "sqs",
   "category": "messaging",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-sqs.git//?ref=v4.1.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/sqs?ref=main"
   },
   "inputs": [
     {
@@ -58,5 +58,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/sqs-{name}/terragrunt.hcl"
+  "path_template": "infra/{env}/sqs-{name}/main.tf"
 }

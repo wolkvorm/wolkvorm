@@ -18,7 +18,7 @@ function PRButton({ schemaId, inputs, env, repos, selectedRepo, onRepoChange }) 
     setCreating(true);
     setResult(null);
 
-    const branchName = `grandform-${schemaId}-${env}-${Date.now()}`;
+    const branchName = `wolkvorm-${schemaId}-${env}-${Date.now()}`;
 
     try {
       // 1. Get main branch SHA

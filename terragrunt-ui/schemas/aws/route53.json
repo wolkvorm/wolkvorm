@@ -6,7 +6,7 @@
   "icon": "route53",
   "category": "networking",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-route53.git//modules/zones?ref=v2.11.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/route53?ref=main"
   },
   "inputs": [
     {
@@ -21,7 +21,7 @@
       "name": "comment",
       "label": "Comment",
       "type": "string",
-      "default": "Managed by GrandForm",
+      "default": "Managed by Wolkvorm",
       "placeholder": "Production DNS zone",
       "description": "Comment for the hosted zone"
     },
@@ -38,5 +38,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/route53-{zone_name}/terragrunt.hcl"
+  "path_template": "infra/{env}/route53-{zone_name}/main.tf"
 }

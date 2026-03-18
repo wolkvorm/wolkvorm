@@ -1,0 +1,50 @@
+{
+  "id": "iam-policy",
+  "name": "IAM Policy",
+  "description": "AWS IAM managed policy for fine-grained access control",
+  "provider": "aws",
+  "icon": "iam",
+  "category": "security",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/iam-policy?ref=main"
+  },
+  "inputs": [
+    {
+      "name": "name",
+      "label": "Policy Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-app-policy",
+      "description": "Name of the IAM policy"
+    },
+    {
+      "name": "description",
+      "label": "Description",
+      "type": "string",
+      "placeholder": "Policy for my application",
+      "description": "Human-readable description of what this policy does"
+    },
+    {
+      "name": "path",
+      "label": "Path",
+      "type": "string",
+      "default": "/",
+      "placeholder": "/",
+      "description": "Path in IAM under which to create the policy (e.g. /app/ or /)"
+    },
+    {
+      "name": "policy",
+      "label": "Policy Document (JSON)",
+      "type": "multiline",
+      "required": true,
+      "placeholder": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\"s3:GetObject\", \"s3:ListBucket\"],\n      \"Resource\": \"arn:aws:s3:::my-bucket/*\"\n    }\n  ]\n}",
+      "description": "IAM policy document in JSON format"
+    }
+  ],
+  "common_inputs": {
+    "region": true,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/iam-policy-{name}/main.tf"
+}

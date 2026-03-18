@@ -6,7 +6,7 @@
   "icon": "elasticache",
   "category": "database",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-elasticache.git//?ref=v1.2.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/elasticache?ref=main"
   },
   "inputs": [
     {
@@ -97,5 +97,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/cache-{replication_group_id}/terragrunt.hcl"
+  "path_template": "infra/{env}/cache-{replication_group_id}/main.tf"
 }

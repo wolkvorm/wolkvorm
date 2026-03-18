@@ -53,7 +53,7 @@ func RunDriftCheck(resource *ManagedResource) DriftCheck {
 	opts := HCLOptions{Region: resource.Region, StateKey: resource.StateKey}
 	hcl := GenerateHCLWithOptions(schema, resource.Inputs, resource.Env, opts)
 
-	tgCmd := "cd /workspace && terragrunt init -no-color 2>&1 && terragrunt plan -no-color -detailed-exitcode 2>&1"
+	tgCmd := "cd /workspace && terraform init -no-color 2>&1 && terraform plan -no-color -detailed-exitcode 2>&1"
 	envVars := map[string]string{
 		"AWS_DEFAULT_REGION": resource.Region,
 	}
@@ -66,7 +66,7 @@ func RunDriftCheck(resource *ManagedResource) DriftCheck {
 	var err error
 
 	if getExecutionMode() == "kubernetes" {
-		jobName := fmt.Sprintf("terraforge-drift-%d", time.Now().UnixMilli())
+		jobName := fmt.Sprintf("wolkvorm-drift-%d", time.Now().UnixMilli())
 		outputStr, err = RunKubeJob(KubeJobOpts{
 			Name:       jobName,
 			Image:      getRunnerImage(),
@@ -76,9 +76,9 @@ func RunDriftCheck(resource *ManagedResource) DriftCheck {
 			HCLContent: hcl,
 		})
 	} else {
-		tmpDir := "/tmp/grandform-drift-" + resource.ID
+		tmpDir := "/tmp/wolkvorm-drift-" + resource.ID
 		exec.Command("mkdir", "-p", tmpDir).Run()
-		exec.Command("bash", "-c", fmt.Sprintf("cat > %s/terragrunt.hcl << 'HCLEOF'\n%s\nHCLEOF", tmpDir, hcl)).Run()
+		exec.Command("bash", "-c", fmt.Sprintf("cat > %s/main.tf << 'HCLEOF'\n%s\nHCLEOF", tmpDir, hcl)).Run()
 
 		args := []string{"run", "--rm", "-v", tmpDir + ":/workspace"}
 		if !useIAMRole {
@@ -87,7 +87,7 @@ func RunDriftCheck(resource *ManagedResource) DriftCheck {
 		}
 		args = append(args,
 			"-e", "AWS_DEFAULT_REGION="+resource.Region,
-			"terragrunt-runner",
+			"wolkvorm-runner",
 			"bash", "-c", tgCmd,
 		)
 		cmd := exec.Command("docker", args...)

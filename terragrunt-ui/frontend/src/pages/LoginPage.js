@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { API } from "../config";
-import logo from "../assets/logo-terraforge-transparent.png";
+import logo from "../assets/wolkvorm-logo.png";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -197,7 +197,7 @@ function LoginPage() {
         <div style={styles.backdrop} />
         <div style={styles.card}>
           <div style={styles.logoWrap}>
-            <img src={logo} alt="TerraForge" style={styles.logo} />
+            <img src={logo} alt="Wolkvorm" style={styles.logo} />
           </div>
 
           <div style={styles.changePasswordNotice}>
@@ -259,7 +259,7 @@ function LoginPage() {
         <div style={styles.backdrop} />
         <div style={styles.card}>
           <div style={styles.logoWrap}>
-            <img src={logo} alt="TerraForge" style={styles.logo} />
+            <img src={logo} alt="Wolkvorm" style={styles.logo} />
           </div>
 
           <div style={styles.viewHeader}>
@@ -317,7 +317,7 @@ function LoginPage() {
           </div>
 
           <p style={styles.footer}>
-            TerraForge &mdash; Open Source Infrastructure Management
+            Wolkvorm &mdash; Open Source Infrastructure Management
           </p>
         </div>
       </div>
@@ -331,7 +331,7 @@ function LoginPage() {
         <div style={styles.backdrop} />
         <div style={styles.card}>
           <div style={styles.logoWrap}>
-            <img src={logo} alt="TerraForge" style={styles.logo} />
+            <img src={logo} alt="Wolkvorm" style={styles.logo} />
           </div>
 
           <div style={styles.viewHeader}>
@@ -428,7 +428,7 @@ function LoginPage() {
           </div>
 
           <p style={styles.footer}>
-            TerraForge &mdash; Open Source Infrastructure Management
+            Wolkvorm &mdash; Open Source Infrastructure Management
           </p>
         </div>
       </div>
@@ -441,7 +441,7 @@ function LoginPage() {
       <div style={styles.backdrop} />
       <div style={styles.card}>
         <div style={styles.logoWrap}>
-          <img src={logo} alt="TerraForge" style={styles.logo} />
+          <img src={logo} alt="Wolkvorm" style={styles.logo} />
         </div>
 
         <p style={styles.subtitle}>Sign in to your account</p>
@@ -498,7 +498,7 @@ function LoginPage() {
         </div>
 
         <p style={styles.footer}>
-          TerraForge &mdash; Open Source Infrastructure Management
+          Wolkvorm &mdash; Open Source Infrastructure Management
         </p>
       </div>
     </div>

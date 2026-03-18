@@ -6,7 +6,7 @@
   "icon": "ec2",
   "category": "compute",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-ec2-instance.git//?ref=v5.6.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/ec2?ref=main"
   },
   "inputs": [
     {
@@ -22,7 +22,25 @@
       "label": "Instance Type",
       "type": "select",
       "default": "t3.micro",
-      "options": ["t3.nano", "t3.micro", "t3.small", "t3.medium", "t3.large", "t3.xlarge", "t3.2xlarge", "m5.large", "m5.xlarge", "m5.2xlarge", "m5.4xlarge", "c5.large", "c5.xlarge", "c5.2xlarge", "r5.large", "r5.xlarge", "r5.2xlarge"],
+      "options": [
+        "t3.nano",
+        "t3.micro",
+        "t3.small",
+        "t3.medium",
+        "t3.large",
+        "t3.xlarge",
+        "t3.2xlarge",
+        "m5.large",
+        "m5.xlarge",
+        "m5.2xlarge",
+        "m5.4xlarge",
+        "c5.large",
+        "c5.xlarge",
+        "c5.2xlarge",
+        "r5.large",
+        "r5.xlarge",
+        "r5.2xlarge"
+      ],
       "description": "EC2 instance type"
     },
     {
@@ -108,7 +126,14 @@
       "label": "Root Volume Type",
       "type": "select",
       "default": "gp3",
-      "options": ["gp3", "gp2", "io1", "io2", "st1", "sc1"],
+      "options": [
+        "gp3",
+        "gp2",
+        "io1",
+        "io2",
+        "st1",
+        "sc1"
+      ],
       "description": "Type of the root EBS volume",
       "advanced": true
     },
@@ -165,7 +190,11 @@
       "label": "Tenancy",
       "type": "select",
       "default": "default",
-      "options": ["default", "dedicated", "host"],
+      "options": [
+        "default",
+        "dedicated",
+        "host"
+      ],
       "description": "Instance tenancy (default, dedicated, or host)",
       "advanced": true
     },
@@ -174,7 +203,10 @@
       "label": "CPU Credits",
       "type": "select",
       "default": "standard",
-      "options": ["standard", "unlimited"],
+      "options": [
+        "standard",
+        "unlimited"
+      ],
       "description": "CPU credit option for burstable instances (T series)",
       "advanced": true
     },
@@ -199,7 +231,10 @@
       "label": "Shutdown Behavior",
       "type": "select",
       "default": "stop",
-      "options": ["stop", "terminate"],
+      "options": [
+        "stop",
+        "terminate"
+      ],
       "description": "What happens when the instance initiates a shutdown",
       "advanced": true
     },
@@ -281,5 +316,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/ec2-{name}/terragrunt.hcl"
+  "path_template": "infra/{env}/ec2-{name}/main.tf"
 }

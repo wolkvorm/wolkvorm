@@ -6,7 +6,7 @@
   "icon": "alb",
   "category": "networking",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-alb.git//?ref=v9.7.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/alb?ref=main"
   },
   "inputs": [
     {
@@ -63,5 +63,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/alb-{name}/terragrunt.hcl"
+  "path_template": "infra/{env}/alb-{name}/main.tf"
 }

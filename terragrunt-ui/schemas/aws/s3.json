@@ -6,7 +6,7 @@
   "icon": "s3",
   "category": "storage",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-s3-bucket.git//?ref=v4.6.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/s3?ref=main"
   },
   "inputs": [
     {
@@ -21,7 +21,13 @@
       "name": "acl",
       "label": "ACL",
       "type": "select",
-      "options": ["private", "public-read", "public-read-write", "authenticated-read", "log-delivery-write"],
+      "options": [
+        "private",
+        "public-read",
+        "public-read-write",
+        "authenticated-read",
+        "log-delivery-write"
+      ],
       "description": "Canned ACL to apply (requires Object Ownership to be BucketOwnerPreferred)",
       "placeholder": "None (recommended)",
       "advanced": true
@@ -38,7 +44,11 @@
       "label": "Object Ownership",
       "type": "select",
       "default": "BucketOwnerEnforced",
-      "options": ["BucketOwnerEnforced", "BucketOwnerPreferred", "ObjectWriter"],
+      "options": [
+        "BucketOwnerEnforced",
+        "BucketOwnerPreferred",
+        "ObjectWriter"
+      ],
       "description": "Object ownership setting (BucketOwnerEnforced disables ACLs)"
     },
     {
@@ -132,7 +142,10 @@
       "name": "acceleration_status",
       "label": "Transfer Acceleration",
       "type": "select",
-      "options": ["Enabled", "Suspended"],
+      "options": [
+        "Enabled",
+        "Suspended"
+      ],
       "description": "Enable S3 Transfer Acceleration",
       "placeholder": "Not configured",
       "advanced": true
@@ -142,7 +155,10 @@
       "label": "Request Payer",
       "type": "select",
       "default": "BucketOwner",
-      "options": ["BucketOwner", "Requester"],
+      "options": [
+        "BucketOwner",
+        "Requester"
+      ],
       "description": "Who pays for data transfer costs",
       "advanced": true
     },
@@ -160,5 +176,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/s3-{bucket}/terragrunt.hcl"
+  "path_template": "infra/{env}/s3-{bucket}/main.tf"
 }

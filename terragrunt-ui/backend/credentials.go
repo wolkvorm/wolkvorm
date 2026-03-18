@@ -93,17 +93,17 @@ var (
 )
 
 func getSettingsFilePath() string {
-	dataDir := os.Getenv("GRANDFORM_DATA_DIR")
+	dataDir := os.Getenv("WOLKVORM_DATA_DIR")
 	if dataDir != "" {
-		return dataDir + "/grandform-settings.enc"
+		return dataDir + "/wolkvorm-settings.enc"
 	}
-	return "grandform-settings.enc"
+	return "wolkvorm-settings.enc"
 }
 
 func getEncryptionKey() []byte {
-	key := os.Getenv("GRANDFORM_SECRET_KEY")
+	key := os.Getenv("WOLKVORM_SECRET_KEY")
 	if key == "" {
-		key = "grandform-default-secret-key-change-me"
+		key = "wolkvorm-default-secret-key-change-me"
 	}
 	hash := sha256.Sum256([]byte(key))
 	return hash[:]

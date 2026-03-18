@@ -78,21 +78,23 @@ function RequireRole({ children, check }) {
 function AppLayout() {
   const { theme } = useTheme();
   return (
-    <div style={{ minHeight: "100vh", background: theme.colors.bg, color: theme.colors.text, fontFamily: theme.fonts.body }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: theme.colors.bg, color: theme.colors.text, fontFamily: theme.fonts.body }}>
       <Navbar />
-      <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/resources" element={<HomePage />} />
-        <Route path="/my-resources" element={<MyResourcesPage />} />
-        <Route path="/resource/:id" element={<ResourcePage />} />
-        <Route path="/settings" element={<RequireRole check={a => a.canAdmin}><SettingsPage /></RequireRole>} />
-        <Route path="/costs" element={<CostDashboardPage />} />
-        <Route path="/audit" element={<AuditLogPage />} />
-        <Route path="/approvals" element={<ApprovalsPage />} />
-        <Route path="/policies" element={<PoliciesPage />} />
-        <Route path="/graph" element={<GraphPage />} />
-        <Route path="/import" element={<RequireRole check={a => a.canImport}><ImportPage /></RequireRole>} />
-      </Routes>
+      <main style={{ flex: 1, overflow: "auto", minHeight: "100vh" }}>
+        <Routes>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/resources" element={<HomePage />} />
+          <Route path="/my-resources" element={<MyResourcesPage />} />
+          <Route path="/resource/:id" element={<ResourcePage />} />
+          <Route path="/settings" element={<RequireRole check={a => a.canAdmin}><SettingsPage /></RequireRole>} />
+          <Route path="/costs" element={<CostDashboardPage />} />
+          <Route path="/audit" element={<AuditLogPage />} />
+          <Route path="/approvals" element={<ApprovalsPage />} />
+          <Route path="/policies" element={<PoliciesPage />} />
+          <Route path="/graph" element={<GraphPage />} />
+          <Route path="/import" element={<RequireRole check={a => a.canImport}><ImportPage /></RequireRole>} />
+        </Routes>
+      </main>
     </div>
   );
 }

@@ -14,12 +14,46 @@ type GraphNode struct {
 	Env      string `json:"env"`
 	Region   string `json:"region"`
 	SchemaID string `json:"schema_id"`
+	Group    string `json:"group"`
 }
 
 type GraphEdge struct {
 	From  string `json:"from"`
 	To    string `json:"to"`
 	Label string `json:"label"`
+}
+
+// Map schema IDs to AWS service groups
+func schemaToGroup(schemaID string) string {
+	groups := map[string]string{
+		"vpc":              "VPC / Networking",
+		"subnet":           "VPC / Networking",
+		"security-group":   "VPC / Networking",
+		"alb":              "VPC / Networking",
+		"api-gateway":      "VPC / Networking",
+		"ec2":              "EC2",
+		"key-pair":         "EC2",
+		"s3":               "S3",
+		"rds":              "RDS",
+		"dynamodb":         "DynamoDB",
+		"elasticache":      "ElastiCache",
+		"lambda":           "Lambda",
+		"eks":              "EKS",
+		"eks-addons":       "EKS",
+		"iam-policy":       "IAM",
+		"iam-role":         "IAM",
+		"ecr-repository":   "ECR",
+		"sns-topic":        "Messaging",
+		"sqs-queue":        "Messaging",
+		"acm-certificate":  "Security",
+		"msk-connector":    "MSK",
+		"msk-custom-plugin":"MSK",
+		"msk-worker-config":"MSK",
+	}
+	if g, ok := groups[schemaID]; ok {
+		return g
+	}
+	return "Other"
 }
 
 // Fields that reference other resources
@@ -62,6 +96,7 @@ func graphHandler(w http.ResponseWriter, r *http.Request) {
 			Env:      res.Env,
 			Region:   res.Region,
 			SchemaID: res.SchemaID,
+			Group:    schemaToGroup(res.SchemaID),
 		})
 
 		// Index by name and other identifiable values

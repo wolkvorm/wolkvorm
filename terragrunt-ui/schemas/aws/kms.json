@@ -6,7 +6,7 @@
   "icon": "kms",
   "category": "security",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-kms.git//?ref=v3.0.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/kms?ref=main"
   },
   "inputs": [
     {
@@ -22,7 +22,10 @@
       "label": "Key Usage",
       "type": "select",
       "default": "ENCRYPT_DECRYPT",
-      "options": ["ENCRYPT_DECRYPT", "SIGN_VERIFY"],
+      "options": [
+        "ENCRYPT_DECRYPT",
+        "SIGN_VERIFY"
+      ],
       "description": "Intended use of the key"
     },
     {
@@ -59,5 +62,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/kms-{description}/terragrunt.hcl"
+  "path_template": "infra/{env}/kms-{description}/main.tf"
 }

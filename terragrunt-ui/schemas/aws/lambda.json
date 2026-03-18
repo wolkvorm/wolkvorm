@@ -6,7 +6,7 @@
   "icon": "lambda",
   "category": "compute",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git//?ref=v7.14.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/lambda?ref=main"
   },
   "inputs": [
     {
@@ -39,7 +39,24 @@
       "type": "select",
       "required": true,
       "default": "python3.12",
-      "options": ["python3.12", "python3.11", "python3.10", "python3.9", "nodejs20.x", "nodejs18.x", "java21", "java17", "java11", "dotnet8", "dotnet6", "go1.x", "ruby3.3", "ruby3.2", "provided.al2023", "provided.al2"],
+      "options": [
+        "python3.12",
+        "python3.11",
+        "python3.10",
+        "python3.9",
+        "nodejs20.x",
+        "nodejs18.x",
+        "java21",
+        "java17",
+        "java11",
+        "dotnet8",
+        "dotnet6",
+        "go1.x",
+        "ruby3.3",
+        "ruby3.2",
+        "provided.al2023",
+        "provided.al2"
+      ],
       "description": "Lambda execution runtime environment"
     },
     {
@@ -68,7 +85,10 @@
       "label": "Architecture",
       "type": "select",
       "default": "x86_64",
-      "options": ["x86_64", "arm64"],
+      "options": [
+        "x86_64",
+        "arm64"
+      ],
       "description": "Instruction set architecture (arm64 for Graviton, cheaper)"
     },
     {
@@ -76,7 +96,10 @@
       "label": "Package Type",
       "type": "select",
       "default": "Zip",
-      "options": ["Zip", "Image"],
+      "options": [
+        "Zip",
+        "Image"
+      ],
       "description": "Deployment package type"
     },
     {
@@ -130,7 +153,10 @@
       "label": "Function URL Auth",
       "type": "select",
       "default": "NONE",
-      "options": ["NONE", "AWS_IAM"],
+      "options": [
+        "NONE",
+        "AWS_IAM"
+      ],
       "description": "Authentication for Function URL",
       "advanced": true
     },
@@ -183,7 +209,11 @@
       "label": "X-Ray Tracing",
       "type": "select",
       "default": "",
-      "options": ["", "PassThrough", "Active"],
+      "options": [
+        "",
+        "PassThrough",
+        "Active"
+      ],
       "description": "AWS X-Ray tracing mode",
       "advanced": true
     },
@@ -200,7 +230,19 @@
       "label": "Log Retention (days)",
       "type": "select",
       "default": "14",
-      "options": ["1", "3", "5", "7", "14", "30", "60", "90", "120", "180", "365"],
+      "options": [
+        "1",
+        "3",
+        "5",
+        "7",
+        "14",
+        "30",
+        "60",
+        "90",
+        "120",
+        "180",
+        "365"
+      ],
       "description": "CloudWatch Logs retention period",
       "advanced": true
     },
@@ -209,7 +251,10 @@
       "label": "Log Format",
       "type": "select",
       "default": "Text",
-      "options": ["Text", "JSON"],
+      "options": [
+        "Text",
+        "JSON"
+      ],
       "description": "Lambda log format (JSON for structured logging)",
       "advanced": true
     },
@@ -218,7 +263,14 @@
       "label": "Application Log Level",
       "type": "select",
       "default": "INFO",
-      "options": ["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"],
+      "options": [
+        "TRACE",
+        "DEBUG",
+        "INFO",
+        "WARN",
+        "ERROR",
+        "FATAL"
+      ],
       "description": "Application log level (when using JSON format)",
       "advanced": true
     },
@@ -244,5 +296,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/lambda-{function_name}/terragrunt.hcl"
+  "path_template": "infra/{env}/lambda-{function_name}/main.tf"
 }

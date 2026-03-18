@@ -6,16 +6,18 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"time"
 )
 
-// PlanRequest is the request body for running a terragrunt command.
+// PlanRequest is the request body for running a terraform command.
 type PlanRequest struct {
-	SchemaID string         `json:"schemaId"`
-	Inputs   map[string]any `json:"inputs"`
-	Region   string         `json:"region"`
-	Env      string         `json:"env"`
+	SchemaID   string         `json:"schemaId"`
+	Inputs     map[string]any `json:"inputs"`
+	Region     string         `json:"region"`
+	Env        string         `json:"env"`
+	ResourceID string         `json:"resourceId,omitempty"`
 }
 
 // PlanRecord stores a single execution result.
@@ -41,8 +43,12 @@ var (
 
 // getResourceName extracts a human-readable name from inputs based on schema type.
 func getResourceName(schemaID string, inputs map[string]any) string {
-	// Try common name fields
-	for _, field := range []string{"bucket", "name", "function_name", "cluster_name", "db_name", "domain_name", "identifier"} {
+	// Try common name fields (covers all schema types)
+	for _, field := range []string{
+		"name", "bucket", "key_name", "role_name", "function_name",
+		"cluster_name", "db_name", "domain_name", "identifier",
+		"repository_name", "replication_group_id", "zone_name", "comment",
+	} {
 		if v, ok := inputs[field]; ok {
 			if s, ok := v.(string); ok && s != "" {
 				return s
@@ -52,7 +58,7 @@ func getResourceName(schemaID string, inputs map[string]any) string {
 	return fmt.Sprintf("%s-%d", schemaID, time.Now().Unix())
 }
 
-// runTerragrunt is a shared helper that runs a terragrunt command in Docker.
+// runTerragrunt is a shared helper that runs a terraform command in Docker.
 func runTerragrunt(req PlanRequest, action string, tgCommand string) (string, string) {
 	schema, ok := getSchema(req.SchemaID)
 	if !ok {
@@ -89,10 +95,10 @@ func runTerragrunt(req PlanRequest, action string, tgCommand string) (string, st
 	hcl := GenerateHCLWithOptions(schema, req.Inputs, req.Env, opts)
 	fmt.Printf("Running %s for %s (env: %s, region: %s)\n", action, schema.Name, req.Env, req.Region)
 
-	runDir := "/tmp/grandform-run"
+	runDir := "/tmp/wolkvorm-run"
 	os.RemoveAll(runDir)
 	os.MkdirAll(runDir, 0755)
-	os.WriteFile(runDir+"/terragrunt.hcl", []byte(hcl), 0644)
+	os.WriteFile(runDir+"/main.tf", []byte(hcl), 0644)
 
 	awsCreds := GetAWSCredentials()
 	accessKey := awsCreds.AccessKeyID
@@ -150,12 +156,12 @@ func runTerragrunt(req PlanRequest, action string, tgCommand string) (string, st
 			envVars["AWS_SECRET_ACCESS_KEY"] = secretKey
 		}
 
-		jobName := fmt.Sprintf("terraforge-%s-%d", action, time.Now().UnixMilli())
+		jobName := fmt.Sprintf("wolkvorm-%s-%d", action, time.Now().UnixMilli())
 		logs, kerr := RunKubeJob(KubeJobOpts{
 			Name:       jobName,
 			Image:      getRunnerImage(),
 			Command:    []string{"/bin/sh"},
-			Args:       []string{"-c", "cd /workspace && terragrunt init && " + tgCommand},
+			Args:       []string{"-c", "cd /workspace && terraform init && " + tgCommand},
 			EnvVars:    envVars,
 			HCLContent: hcl,
 		})
@@ -171,8 +177,8 @@ func runTerragrunt(req PlanRequest, action string, tgCommand string) (string, st
 		args = append(args,
 			"-e", "AWS_DEFAULT_REGION="+req.Region,
 			"-v", runDir+":/workspace",
-			"terragrunt-runner",
-			"-c", "cd /workspace && terragrunt init && "+tgCommand,
+			"wolkvorm-runner",
+			"-c", "cd /workspace && terraform init && "+tgCommand,
 		)
 		cmd := exec.Command("docker", args...)
 		output, err = cmd.CombinedOutput()
@@ -227,20 +233,111 @@ func runTerragrunt(req PlanRequest, action string, tgCommand string) (string, st
 			})
 			fmt.Printf("Resource tracked: %s (%s)\n", resourceName, resID)
 		}
+		// Extract outputs
+		var outputBytes []byte
+		if getExecutionMode() == "kubernetes" {
+			envVars := map[string]string{
+				"AWS_DEFAULT_REGION": req.Region,
+			}
+			if !useIAMRole {
+				envVars["AWS_ACCESS_KEY_ID"] = accessKey
+				envVars["AWS_SECRET_ACCESS_KEY"] = secretKey
+			}
+			jobName := fmt.Sprintf("wolkvorm-out-%d", time.Now().UnixMilli())
+			logs, _ := RunKubeJob(KubeJobOpts{
+				Name:       jobName,
+				Image:      getRunnerImage(),
+				Command:    []string{"/bin/sh"},
+				Args:       []string{"-c", "cd /workspace && terraform output -json"},
+				EnvVars:    envVars,
+				HCLContent: hcl,
+			})
+			outputBytes = []byte(logs)
+		} else {
+			args := []string{"run", "--rm"}
+			if !useIAMRole {
+				args = append(args, "-e", "AWS_ACCESS_KEY_ID="+accessKey)
+				args = append(args, "-e", "AWS_SECRET_ACCESS_KEY="+secretKey)
+			}
+			args = append(args,
+				"-e", "AWS_DEFAULT_REGION="+req.Region,
+				"-v", runDir+":/workspace",
+				"wolkvorm-runner",
+				"-c", "cd /workspace && terraform output -json",
+			)
+			cmd := exec.Command("docker", args...)
+			outputBytes, _ = cmd.CombinedOutput()
+		}
+
+		// Parse the output JSON
+		rawOutput := string(outputBytes)
+		jsonStart := strings.Index(rawOutput, "{")
+		jsonEnd := strings.LastIndex(rawOutput, "}")
+
+		var rawOutputs map[string]struct {
+			Sensitive bool `json:"sensitive"`
+			Type      any  `json:"type"`
+			Value     any  `json:"value"`
+		}
+
+		outputs := make(map[string]any)
+		if jsonStart >= 0 && jsonEnd > jsonStart {
+			jsonStr := rawOutput[jsonStart : jsonEnd+1]
+			if err := json.Unmarshal([]byte(jsonStr), &rawOutputs); err == nil {
+				for k, v := range rawOutputs {
+					outputs[k] = v.Value
+				}
+			} else {
+				fmt.Printf("Warning: Failed to parse terraform outputs: %v\nJSON was: %s\n", err, jsonStr)
+			}
+		} else {
+			fmt.Printf("Warning: No JSON found in terraform output: %s\n", rawOutput)
+		}
+
+		if existing != nil {
+			dbUpdateResourceOutputs(existing.ID, outputs)
+		} else {
+			// Find the newly created resource ID based on StateKey to update its outputs
+			newRes := dbGetResourceByStateKey(stateKey)
+			if newRes != nil {
+				dbUpdateResourceOutputs(newRes.ID, outputs)
+			}
+		}
 	}
 
 	if status == "success" && action == "destroy" {
-		existing := dbGetResourceByStateKey(stateKey)
-		if existing != nil {
-			dbUpdateResourceStatus(existing.ID, "destroyed")
-			fmt.Printf("Resource destroyed: %s\n", existing.Name)
+		// First try: use resourceId directly if provided (from edit mode)
+		if req.ResourceID != "" {
+			dbUpdateResourceStatus(req.ResourceID, "destroyed")
+			fmt.Printf("Resource destroyed (by ID): %s\n", req.ResourceID)
+		} else {
+			// Second try: lookup by stateKey
+			existing := dbGetResourceByStateKey(stateKey)
+			if existing != nil {
+				dbUpdateResourceStatus(existing.ID, "destroyed")
+				fmt.Printf("Resource destroyed: %s\n", existing.Name)
+			} else {
+				// Fallback: find active resources matching schema and env
+				allResources := dbGetResources(false)
+				for _, r := range allResources {
+					if r.SchemaID == req.SchemaID && r.Env == req.Env && (r.Status == "active" || r.Status == "unknown") {
+						formName := getResourceName(req.SchemaID, req.Inputs)
+						storedName := getResourceName(r.SchemaID, r.Inputs)
+						if formName == storedName || r.Name == formName {
+							dbUpdateResourceStatus(r.ID, "destroyed")
+							fmt.Printf("Resource destroyed (fallback match): %s\n", r.Name)
+							break
+						}
+					}
+				}
+			}
 		}
 	}
 
 	return status, recordID
 }
 
-// terragruntHandler is the generic handler for plan/apply/destroy.
+// terraformHandler is the generic handler for plan/apply/destroy.
 func terragruntHandler(w http.ResponseWriter, r *http.Request, action string, tgCommand string) {
 	enableCors(w)
 	if r.Method == "OPTIONS" {
@@ -280,22 +377,22 @@ func terragruntHandler(w http.ResponseWriter, r *http.Request, action string, tg
 	})
 }
 
-// planHandler runs terragrunt plan.
+// planHandler runs terraform plan.
 // POST /api/plan
 func planHandler(w http.ResponseWriter, r *http.Request) {
-	terragruntHandler(w, r, "plan", "terragrunt plan")
+	terragruntHandler(w, r, "plan", "terraform plan")
 }
 
-// applyHandler runs terragrunt apply.
+// applyHandler runs terraform apply.
 // POST /api/apply
 func applyHandler(w http.ResponseWriter, r *http.Request) {
-	terragruntHandler(w, r, "apply", "terragrunt apply -auto-approve")
+	terragruntHandler(w, r, "apply", "terraform apply -auto-approve")
 }
 
-// destroyHandler runs terragrunt destroy.
+// destroyHandler runs terraform destroy.
 // POST /api/destroy
 func destroyHandler(w http.ResponseWriter, r *http.Request) {
-	terragruntHandler(w, r, "destroy", "terragrunt destroy -auto-approve")
+	terragruntHandler(w, r, "destroy", "terraform destroy -auto-approve")
 }
 
 // logsHandler returns the latest logs.

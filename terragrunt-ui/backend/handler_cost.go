@@ -42,10 +42,10 @@ func costEstimateHandler(w http.ResponseWriter, r *http.Request) {
 	hcl := GenerateHCL(schema, req.Inputs, req.Env, req.Region)
 
 	// Write HCL to temp dir for Infracost
-	costDir := "/tmp/grandform-cost"
+	costDir := "/tmp/wolkvorm-cost"
 	os.RemoveAll(costDir)
 	os.MkdirAll(costDir, 0755)
-	os.WriteFile(costDir+"/terragrunt.hcl", []byte(hcl), 0644)
+	os.WriteFile(costDir+"/main.tf", []byte(hcl), 0644)
 
 	// Check if Infracost API key is configured (settings first, then env)
 	apiKey := GetInfracostKey()

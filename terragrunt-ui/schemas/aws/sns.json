@@ -6,7 +6,7 @@
   "icon": "sns",
   "category": "messaging",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-sns.git//?ref=v6.0.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/sns?ref=main"
   },
   "inputs": [
     {
@@ -44,5 +44,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/sns-{name}/terragrunt.hcl"
+  "path_template": "infra/{env}/sns-{name}/main.tf"
 }

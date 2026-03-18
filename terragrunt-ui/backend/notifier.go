@@ -174,10 +174,10 @@ func sendEmail(config SMTPConfig, title, message string, details map[string]stri
 <h2>%s</h2>
 <p>%s</p>
 <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse">%s</table>
-<p style="color:#666;font-size:12px">Sent by TerraForge</p>
+<p style="color:#666;font-size:12px">Sent by Wolkvorm</p>
 </body></html>`, title, message, detailLines)
 
-	msg := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: TerraForge: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n%s",
+	msg := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: Wolkvorm: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n%s",
 		config.From, config.To, title, htmlBody)
 
 	addr := config.Host + ":" + config.Port
@@ -200,8 +200,8 @@ func SendTestNotification(channel string) error {
 	if config == nil {
 		return fmt.Errorf("no notification config found")
 	}
-	title := "TerraForge Test Notification"
-	message := "This is a test notification from TerraForge."
+	title := "Wolkvorm Test Notification"
+	message := "This is a test notification from Wolkvorm."
 	details := map[string]string{"Status": "OK", "Source": "Settings Page"}
 
 	switch channel {

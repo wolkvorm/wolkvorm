@@ -303,7 +303,7 @@ func githubCreateBranchHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "branch_created"})
 }
 
-// githubCommitFileHandler commits a generated terragrunt.hcl to a branch.
+// githubCommitFileHandler commits a generated main.tf to a branch.
 // POST /api/github/commit-file
 func githubCommitFileHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(w)
@@ -339,7 +339,7 @@ func githubCommitFileHandler(w http.ResponseWriter, r *http.Request) {
 
 	url := fmt.Sprintf("https://api.github.com/repos/%s/contents/%s", d.Repo, filePath)
 
-	commitMsg := fmt.Sprintf("GrandForm: add %s config (%s)", schema.Name, d.Env)
+	commitMsg := fmt.Sprintf("Wolkvorm: add %s config (%s)", schema.Name, d.Env)
 	body := fmt.Sprintf(`{"message":"%s","content":"%s","branch":"%s"}`, commitMsg, content, d.Branch)
 
 	req, _ := http.NewRequest("PUT", url, bytes.NewBuffer([]byte(body)))
@@ -387,8 +387,8 @@ func githubCreatePRHandler(w http.ResponseWriter, r *http.Request) {
 		schemaName = schema.Name
 	}
 
-	title := fmt.Sprintf("GrandForm: create %s (%s)", schemaName, d.Env)
-	prBody := fmt.Sprintf(`{"title":"%s","head":"%s","base":"main","body":"This PR was automatically created by GrandForm UI."}`, title, d.Branch)
+	title := fmt.Sprintf("Wolkvorm: create %s (%s)", schemaName, d.Env)
+	prBody := fmt.Sprintf(`{"title":"%s","head":"%s","base":"main","body":"This PR was automatically created by Wolkvorm."}`, title, d.Branch)
 
 	req, _ := http.NewRequest("POST", "https://api.github.com/repos/"+d.Repo+"/pulls", bytes.NewBuffer([]byte(prBody)))
 	req.Header.Set("Authorization", "Bearer "+token)

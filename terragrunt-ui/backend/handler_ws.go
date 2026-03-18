@@ -2,11 +2,13 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -63,16 +65,16 @@ func wsRunHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Determine terragrunt command
+	// Determine terraform command
 	var tgCommand string
 	switch req.Action {
 	case "apply":
-		tgCommand = "terragrunt apply -auto-approve"
+		tgCommand = "terraform apply -auto-approve"
 	case "destroy":
-		tgCommand = "terragrunt destroy -auto-approve"
+		tgCommand = "terraform destroy -auto-approve"
 	default:
 		req.Action = "plan"
-		tgCommand = "terragrunt plan"
+		tgCommand = "terraform plan"
 	}
 
 	// Check if approval is required for apply/destroy
@@ -108,10 +110,10 @@ func wsRunHandler(w http.ResponseWriter, r *http.Request) {
 	hcl := GenerateHCLWithOptions(schema, req.Inputs, req.Env, opts)
 	fmt.Printf("[WS] Running %s for %s (env: %s, region: %s)\n", req.Action, schema.Name, req.Env, req.Region)
 
-	runDir := "/tmp/grandform-run"
+	runDir := "/tmp/wolkvorm-run"
 	os.RemoveAll(runDir)
 	os.MkdirAll(runDir, 0755)
-	os.WriteFile(runDir+"/terragrunt.hcl", []byte(hcl), 0644)
+	os.WriteFile(runDir+"/main.tf", []byte(hcl), 0644)
 
 	awsCreds := GetAWSCredentials()
 	accessKey := awsCreds.AccessKeyID
@@ -180,12 +182,12 @@ func wsRunHandler(w http.ResponseWriter, r *http.Request) {
 			envVars["AWS_SECRET_ACCESS_KEY"] = secretKey
 		}
 
-		jobName := fmt.Sprintf("terraforge-%s-%d", req.Action, time.Now().UnixMilli())
+		jobName := fmt.Sprintf("wolkvorm-%s-%d", req.Action, time.Now().UnixMilli())
 		kerr := RunKubeJobStreaming(KubeJobOpts{
 			Name:       jobName,
 			Image:      getRunnerImage(),
 			Command:    []string{"/bin/sh"},
-			Args:       []string{"-c", "cd /workspace && terragrunt init && " + tgCommand},
+			Args:       []string{"-c", "cd /workspace && terraform init && " + tgCommand},
 			EnvVars:    envVars,
 			HCLContent: hcl,
 		}, logCh)
@@ -206,8 +208,8 @@ func wsRunHandler(w http.ResponseWriter, r *http.Request) {
 		args = append(args,
 			"-e", "AWS_DEFAULT_REGION="+req.Region,
 			"-v", runDir+":/workspace",
-			"terragrunt-runner",
-			"-c", "cd /workspace && terragrunt init && "+tgCommand,
+			"wolkvorm-runner",
+			"-c", "cd /workspace && terraform init && "+tgCommand,
 		)
 		cmd := exec.Command("docker", args...)
 
@@ -308,6 +310,72 @@ func wsRunHandler(w http.ResponseWriter, r *http.Request) {
 				UpdatedAt:   now,
 				LastApplyID: recordID,
 			})
+		}
+
+		// Extract terraform outputs (ARN, IDs, etc.)
+		conn.WriteJSON(map[string]string{"type": "log", "data": "Fetching outputs..."})
+		var outputBytes []byte
+		if getExecutionMode() == "kubernetes" {
+			envVars := map[string]string{
+				"AWS_DEFAULT_REGION": req.Region,
+			}
+			if !useIAMRole {
+				envVars["AWS_ACCESS_KEY_ID"] = accessKey
+				envVars["AWS_SECRET_ACCESS_KEY"] = secretKey
+			}
+			jobName := fmt.Sprintf("wolkvorm-out-%d", time.Now().UnixMilli())
+			logs, _ := RunKubeJob(KubeJobOpts{
+				Name:       jobName,
+				Image:      getRunnerImage(),
+				Command:    []string{"/bin/sh"},
+				Args:       []string{"-c", "cd /workspace && terraform output -json"},
+				EnvVars:    envVars,
+				HCLContent: hcl,
+			})
+			outputBytes = []byte(logs)
+		} else {
+			outArgs := []string{"run", "--rm"}
+			if !useIAMRole {
+				outArgs = append(outArgs, "-e", "AWS_ACCESS_KEY_ID="+accessKey)
+				outArgs = append(outArgs, "-e", "AWS_SECRET_ACCESS_KEY="+secretKey)
+			}
+			outArgs = append(outArgs,
+				"-e", "AWS_DEFAULT_REGION="+req.Region,
+				"-v", runDir+":/workspace",
+				"wolkvorm-runner",
+				"-c", "cd /workspace && terraform output -json",
+			)
+			outCmd := exec.Command("docker", outArgs...)
+			outputBytes, _ = outCmd.CombinedOutput()
+		}
+
+		// Parse the output JSON
+		rawOutput := string(outputBytes)
+		jsonStart := strings.Index(rawOutput, "{")
+		jsonEnd := strings.LastIndex(rawOutput, "}")
+
+		var rawOutputs map[string]struct {
+			Sensitive bool `json:"sensitive"`
+			Type      any  `json:"type"`
+			Value     any  `json:"value"`
+		}
+
+		outputs := make(map[string]any)
+		if jsonStart >= 0 && jsonEnd > jsonStart {
+			jsonStr := rawOutput[jsonStart : jsonEnd+1]
+			if err := json.Unmarshal([]byte(jsonStr), &rawOutputs); err == nil {
+				for k, v := range rawOutputs {
+					outputs[k] = v.Value
+				}
+			} else {
+				fmt.Printf("[WS] Warning: Failed to parse outputs: %v\n", err)
+			}
+		}
+
+		res := dbGetResourceByStateKey(stateKey)
+		if res != nil {
+			dbUpdateResourceOutputs(res.ID, outputs)
+			fmt.Printf("[WS] Outputs saved for resource %s\n", res.Name)
 		}
 	}
 	if status == "success" && req.Action == "destroy" {

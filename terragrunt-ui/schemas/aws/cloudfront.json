@@ -6,7 +6,7 @@
   "icon": "cloudfront",
   "category": "networking",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-cloudfront.git//?ref=v3.4.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/cloudfront?ref=main"
   },
   "inputs": [
     {
@@ -60,7 +60,11 @@
       "label": "Price Class",
       "type": "select",
       "default": "PriceClass_100",
-      "options": ["PriceClass_All", "PriceClass_200", "PriceClass_100"],
+      "options": [
+        "PriceClass_All",
+        "PriceClass_200",
+        "PriceClass_100"
+      ],
       "description": "Price class for the distribution edge locations"
     }
   ],
@@ -69,5 +73,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/cdn-{origin_id}/terragrunt.hcl"
+  "path_template": "infra/{env}/cdn-{origin_id}/main.tf"
 }

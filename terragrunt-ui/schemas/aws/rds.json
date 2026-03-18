@@ -6,7 +6,7 @@
   "icon": "rds",
   "category": "database",
   "module": {
-    "source": "git::https://github.com/terraform-aws-modules/terraform-aws-rds.git//?ref=v6.10.0"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/rds?ref=main"
   },
   "inputs": [
     {
@@ -304,5 +304,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/rds-{identifier}/terragrunt.hcl"
+  "path_template": "infra/{env}/rds-{identifier}/main.tf"
 }

@@ -10,12 +10,12 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - backend-data:/app/data
-      - /tmp/grandform-run:/tmp/grandform-run
+      - /tmp/wolkvorm-run:/tmp/wolkvorm-run
       - /tmp:/tmp
     environment:
       - EXECUTION_MODE=docker
       - SCHEMAS_DIR=/schemas
-      - GRANDFORM_DATA_DIR=/app/data
+      - WOLKVORM_DATA_DIR=/app/data
     depends_on:
       runner:
         condition: service_completed_successfully
@@ -35,7 +35,7 @@ services:
     build:
       context: ./runner
       dockerfile: Dockerfile
-    image: terragrunt-runner
+    image: wolkvorm-runner
     entrypoint: ["echo", "Runner image built successfully"]
 
 volumes:

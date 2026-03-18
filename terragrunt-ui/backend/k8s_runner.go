@@ -23,7 +23,7 @@ type KubeJobOpts struct {
 	Command   []string          // entrypoint command
 	Args      []string          // command arguments
 	EnvVars   map[string]string // environment variables
-	HCLContent string           // terragrunt.hcl content to mount
+	HCLContent string           // main.tf content to mount
 	Namespace string            // kubernetes namespace
 }
 
@@ -42,7 +42,7 @@ func getRunnerImage() string {
 	if img != "" {
 		return img
 	}
-	return "terragrunt-runner"
+	return "wolkvorm-runner"
 }
 
 // getRunnerNamespace returns the namespace for Jobs.
@@ -85,20 +85,20 @@ func RunKubeJob(opts KubeJobOpts) (string, error) {
 		ns = getRunnerNamespace()
 	}
 
-	// Create ConfigMap with terragrunt.hcl
+	// Create ConfigMap with main.tf
 	cmName := opts.Name + "-hcl"
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cmName,
 			Namespace: ns,
 			Labels: map[string]string{
-				"app":        "terraforge",
-				"managed-by": "terraforge-runner",
+				"app":        "wolkvorm",
+				"managed-by": "wolkvorm-runner",
 				"job-name":   opts.Name,
 			},
 		},
 		Data: map[string]string{
-			"terragrunt.hcl": opts.HCLContent,
+			"main.tf": opts.HCLContent,
 		},
 	}
 	_, err = client.CoreV1().ConfigMaps(ns).Create(ctx, cm, metav1.CreateOptions{})
@@ -106,59 +106,59 @@ func RunKubeJob(opts KubeJobOpts) (string, error) {
 		return "", fmt.Errorf("failed to create configmap: %w", err)
 	}
 
-	// Cleanup on exit
-	defer func() {
-		_ = client.CoreV1().ConfigMaps(ns).Delete(ctx, cmName, metav1.DeleteOptions{})
-		dp := metav1.DeletePropagationBackground
-		_ = client.BatchV1().Jobs(ns).Delete(ctx, opts.Name, metav1.DeleteOptions{
-			PropagationPolicy: &dp,
-		})
-	}()
+// Cleanup on exit
+defer func() {
+	_ = client.CoreV1().ConfigMaps(ns).Delete(ctx, cmName, metav1.DeleteOptions{})
+	dp := metav1.DeletePropagationBackground
+	_ = client.BatchV1().Jobs(ns).Delete(ctx, opts.Name, metav1.DeleteOptions{
+		PropagationPolicy: &dp,
+	})
+}()
 
-	// Build env vars
-	envVars := []corev1.EnvVar{}
-	for k, v := range opts.EnvVars {
-		envVars = append(envVars, corev1.EnvVar{Name: k, Value: v})
-	}
+// Build env vars
+envVars := []corev1.EnvVar{}
+for k, v := range opts.EnvVars {
+	envVars = append(envVars, corev1.EnvVar{Name: k, Value: v})
+}
 
-	// Build Job spec
-	backoffLimit := int32(0)
-	ttl := int32(300) // auto-cleanup after 5 minutes
-	job := &batchv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      opts.Name,
-			Namespace: ns,
-			Labels: map[string]string{
-				"app":        "terraforge",
-				"managed-by": "terraforge-runner",
-			},
+// Build Job spec
+backoffLimit := int32(0)
+ttl := int32(300) // auto-cleanup after 5 minutes
+job := &batchv1.Job{
+	ObjectMeta: metav1.ObjectMeta{
+		Name:      opts.Name,
+		Namespace: ns,
+		Labels: map[string]string{
+			"app":        "wolkvorm",
+			"managed-by": "wolkvorm-runner",
 		},
-		Spec: batchv1.JobSpec{
-			BackoffLimit:            &backoffLimit,
-			TTLSecondsAfterFinished: &ttl,
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"app":      "terraforge",
-						"job-name": opts.Name,
-					},
+	},
+	Spec: batchv1.JobSpec{
+		BackoffLimit:            &backoffLimit,
+		TTLSecondsAfterFinished: &ttl,
+		Template: corev1.PodTemplateSpec{
+			ObjectMeta: metav1.ObjectMeta{
+				Labels: map[string]string{
+					"app":      "wolkvorm",
+					"job-name": opts.Name,
 				},
-				Spec: corev1.PodSpec{
-					RestartPolicy: corev1.RestartPolicyNever,
-					Containers: []corev1.Container{
-						{
-							Name:    "runner",
-							Image:   opts.Image,
-							Command: opts.Command,
-							Args:    opts.Args,
-							Env:     envVars,
-							VolumeMounts: []corev1.VolumeMount{
-								{
-									Name:      "hcl-config",
-									MountPath: "/workspace/terragrunt.hcl",
-									SubPath:   "terragrunt.hcl",
-								},
+			},
+			Spec: corev1.PodSpec{
+				RestartPolicy: corev1.RestartPolicyNever,
+				Containers: []corev1.Container{
+					{
+						Name:    "runner",
+						Image:   opts.Image,
+						Command: opts.Command,
+						Args:    opts.Args,
+						Env:     envVars,
+						VolumeMounts: []corev1.VolumeMount{
+							{
+								Name:      "hcl-config",
+								MountPath: "/workspace/main.tf",
+								SubPath:   "main.tf",
 							},
+						},
 							WorkingDir: "/workspace",
 						},
 					},
@@ -207,20 +207,20 @@ func RunKubeJobStreaming(opts KubeJobOpts, logCh chan<- string) error {
 		ns = getRunnerNamespace()
 	}
 
-	// Create ConfigMap with terragrunt.hcl
+	// Create ConfigMap with main.tf
 	cmName := opts.Name + "-hcl"
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cmName,
 			Namespace: ns,
 			Labels: map[string]string{
-				"app":        "terraforge",
-				"managed-by": "terraforge-runner",
+				"app":        "wolkvorm",
+				"managed-by": "wolkvorm-runner",
 				"job-name":   opts.Name,
 			},
 		},
 		Data: map[string]string{
-			"terragrunt.hcl": opts.HCLContent,
+			"main.tf": opts.HCLContent,
 		},
 	}
 	_, err = client.CoreV1().ConfigMaps(ns).Create(ctx, cm, metav1.CreateOptions{})
@@ -228,59 +228,59 @@ func RunKubeJobStreaming(opts KubeJobOpts, logCh chan<- string) error {
 		return fmt.Errorf("failed to create configmap: %w", err)
 	}
 
-	// Cleanup on exit
-	defer func() {
-		_ = client.CoreV1().ConfigMaps(ns).Delete(ctx, cmName, metav1.DeleteOptions{})
-		dp := metav1.DeletePropagationBackground
-		_ = client.BatchV1().Jobs(ns).Delete(ctx, opts.Name, metav1.DeleteOptions{
-			PropagationPolicy: &dp,
-		})
-	}()
+// Cleanup on exit
+defer func() {
+	_ = client.CoreV1().ConfigMaps(ns).Delete(ctx, cmName, metav1.DeleteOptions{})
+	dp := metav1.DeletePropagationBackground
+	_ = client.BatchV1().Jobs(ns).Delete(ctx, opts.Name, metav1.DeleteOptions{
+		PropagationPolicy: &dp,
+	})
+}()
 
-	// Build env vars
-	envVars := []corev1.EnvVar{}
-	for k, v := range opts.EnvVars {
-		envVars = append(envVars, corev1.EnvVar{Name: k, Value: v})
-	}
+// Build env vars
+envVars := []corev1.EnvVar{}
+for k, v := range opts.EnvVars {
+	envVars = append(envVars, corev1.EnvVar{Name: k, Value: v})
+}
 
-	// Build Job spec
-	backoffLimit := int32(0)
-	ttl := int32(300)
-	job := &batchv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      opts.Name,
-			Namespace: ns,
-			Labels: map[string]string{
-				"app":        "terraforge",
-				"managed-by": "terraforge-runner",
-			},
+// Build Job spec
+backoffLimit := int32(0)
+ttl := int32(300)
+job := &batchv1.Job{
+	ObjectMeta: metav1.ObjectMeta{
+		Name:      opts.Name,
+		Namespace: ns,
+		Labels: map[string]string{
+			"app":        "wolkvorm",
+			"managed-by": "wolkvorm-runner",
 		},
-		Spec: batchv1.JobSpec{
-			BackoffLimit:            &backoffLimit,
-			TTLSecondsAfterFinished: &ttl,
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"app":      "terraforge",
-						"job-name": opts.Name,
-					},
+	},
+	Spec: batchv1.JobSpec{
+		BackoffLimit:            &backoffLimit,
+		TTLSecondsAfterFinished: &ttl,
+		Template: corev1.PodTemplateSpec{
+			ObjectMeta: metav1.ObjectMeta{
+				Labels: map[string]string{
+					"app":      "wolkvorm",
+					"job-name": opts.Name,
 				},
-				Spec: corev1.PodSpec{
-					RestartPolicy: corev1.RestartPolicyNever,
-					Containers: []corev1.Container{
-						{
-							Name:    "runner",
-							Image:   opts.Image,
-							Command: opts.Command,
-							Args:    opts.Args,
-							Env:     envVars,
-							VolumeMounts: []corev1.VolumeMount{
-								{
-									Name:      "hcl-config",
-									MountPath: "/workspace/terragrunt.hcl",
-									SubPath:   "terragrunt.hcl",
-								},
+			},
+			Spec: corev1.PodSpec{
+				RestartPolicy: corev1.RestartPolicyNever,
+				Containers: []corev1.Container{
+					{
+						Name:    "runner",
+						Image:   opts.Image,
+						Command: opts.Command,
+						Args:    opts.Args,
+						Env:     envVars,
+						VolumeMounts: []corev1.VolumeMount{
+							{
+								Name:      "hcl-config",
+								MountPath: "/workspace/main.tf",
+								SubPath:   "main.tf",
 							},
+						},
 							WorkingDir: "/workspace",
 						},
 					},
@@ -391,7 +391,7 @@ func RunKubeJobForCost(image string, envVars map[string]string, hclContent strin
 
 	ctx := context.Background()
 	ns := getRunnerNamespace()
-	jobName := fmt.Sprintf("terraforge-cost-%d", time.Now().UnixMilli())
+	jobName := fmt.Sprintf("wolkvorm-cost-%d", time.Now().UnixMilli())
 	cmName := jobName + "-hcl"
 
 	// Create ConfigMap
@@ -399,14 +399,14 @@ func RunKubeJobForCost(image string, envVars map[string]string, hclContent strin
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cmName,
 			Namespace: ns,
-			Labels: map[string]string{
-				"app":        "terraforge",
-				"managed-by": "terraforge-runner",
-			},
+		Labels: map[string]string{
+			"app":        "wolkvorm",
+			"managed-by": "wolkvorm-runner",
 		},
-		Data: map[string]string{
-			"main.tf": hclContent,
-		},
+	},
+	Data: map[string]string{
+		"main.tf": hclContent,
+	},
 	}
 	_, err = client.CoreV1().ConfigMaps(ns).Create(ctx, cm, metav1.CreateOptions{})
 	if err != nil {
@@ -434,8 +434,8 @@ func RunKubeJobForCost(image string, envVars map[string]string, hclContent strin
 			Name:      jobName,
 			Namespace: ns,
 			Labels: map[string]string{
-				"app":        "terraforge",
-				"managed-by": "terraforge-runner",
+				"app":        "wolkvorm",
+				"managed-by": "wolkvorm-runner",
 			},
 		},
 		Spec: batchv1.JobSpec{
@@ -444,7 +444,7 @@ func RunKubeJobForCost(image string, envVars map[string]string, hclContent strin
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"app":      "terraforge",
+						"app":      "wolkvorm",
 						"job-name": jobName,
 					},
 				},

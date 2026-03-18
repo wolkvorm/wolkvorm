@@ -176,7 +176,7 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-	fmt.Printf("TerraForge server running on :%s (mode: %s)\n", port, getExecutionMode())
+	fmt.Printf("Wolkvorm server running on :%s (mode: %s)\n", port, getExecutionMode())
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 

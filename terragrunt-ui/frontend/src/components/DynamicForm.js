@@ -265,7 +265,7 @@ function DynamicForm({ schema, onSubmit, values, onChange, defaultRegion, onRegi
               rows={field.rows || 10}
               spellCheck={false}
             />
-            <span style={styles.hclHint}>Raw HCL — will be inserted directly into terragrunt.hcl</span>
+            <span style={styles.hclHint}>Raw HCL — will be inserted directly into main.tf</span>
           </div>
         );
 

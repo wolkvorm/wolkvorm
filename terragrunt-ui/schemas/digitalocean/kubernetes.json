@@ -1,0 +1,126 @@
+{
+  "id": "do-kubernetes",
+  "name": "Kubernetes (DOKS)",
+  "description": "DigitalOcean Managed Kubernetes Service cluster",
+  "provider": "digitalocean",
+  "icon": "kubernetes",
+  "category": "containers",
+  "inputs": [
+    {
+      "name": "name",
+      "label": "Cluster Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "my-doks-cluster"
+    },
+    {
+      "name": "region",
+      "label": "Region",
+      "type": "select",
+      "required": true,
+      "options": [
+        "ams3",
+        "fra1",
+        "lon1",
+        "nyc1",
+        "nyc3",
+        "sfo3",
+        "sgp1",
+        "tor1",
+        "blr1",
+        "syd1"
+      ],
+      "default": "ams3"
+    },
+    {
+      "name": "version",
+      "label": "Kubernetes Version",
+      "type": "string",
+      "required": true,
+      "placeholder": "1.31.1-do.2",
+      "description": "Use 'doctl kubernetes options versions' to list available versions"
+    },
+    {
+      "name": "node_pool_name",
+      "label": "Node Pool Name",
+      "type": "string",
+      "required": true,
+      "placeholder": "default-pool",
+      "default": "default-pool"
+    },
+    {
+      "name": "node_pool_size",
+      "label": "Node Size",
+      "type": "select",
+      "required": true,
+      "options": [
+        "s-2vcpu-2gb",
+        "s-2vcpu-4gb",
+        "s-4vcpu-8gb",
+        "s-8vcpu-16gb",
+        "c-2",
+        "c-4",
+        "g-2vcpu-8gb",
+        "gd-2vcpu-8gb"
+      ],
+      "default": "s-2vcpu-4gb"
+    },
+    {
+      "name": "node_pool_node_count",
+      "label": "Node Count",
+      "type": "number",
+      "required": false,
+      "default": 2
+    },
+    {
+      "name": "node_pool_auto_scale",
+      "label": "Enable Auto Scale",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "advanced": true
+    },
+    {
+      "name": "node_pool_min_nodes",
+      "label": "Min Nodes",
+      "type": "number",
+      "required": false,
+      "default": 1,
+      "advanced": true
+    },
+    {
+      "name": "node_pool_max_nodes",
+      "label": "Max Nodes",
+      "type": "number",
+      "required": false,
+      "default": 5,
+      "advanced": true
+    },
+    {
+      "name": "auto_upgrade",
+      "label": "Auto Upgrade",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "advanced": true
+    },
+    {
+      "name": "ha",
+      "label": "High Availability",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Enable HA control plane (additional cost)",
+      "advanced": true
+    }
+  ],
+  "common_inputs": {
+    "region": false,
+    "environment": true,
+    "tags": true
+  },
+  "path_template": "infra/{env}/do-k8s-{name}/main.tf",
+  "module": {
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/digitalocean/kubernetes?ref=main"
+  }
+}

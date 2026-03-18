@@ -32,7 +32,7 @@ function RoleBadge({ role }) {
 }
 
 function SettingsPage() {
-  const { canAdmin, canManageUsers } = useAuth();
+  const { canManageUsers } = useAuth();
   const { theme } = useTheme();
   const styles = getStyles(theme);
   // AWS state
@@ -383,7 +383,7 @@ function SettingsPage() {
           ) : (
             <div style={styles.infoBoxSmall}>
               <strong>IAM Role Authentication</strong><br />
-              When running on an EC2 instance, TerraForge will automatically use the attached IAM Role for AWS operations. No access keys needed.<br /><br />
+              When running on an EC2 instance, Wolkvorm will automatically use the attached IAM Role for AWS operations. No access keys needed.<br /><br />
               <strong>Setup:</strong> Attach an IAM Role with the necessary permissions to your EC2 instance via the AWS Console &rarr; EC2 &rarr; Actions &rarr; Security &rarr; Modify IAM Role.
             </div>
           )}
@@ -1106,7 +1106,7 @@ function SettingsPage() {
       {/* Info box */}
       <div style={styles.infoBox}>
         <strong>Security Note:</strong> Credentials are encrypted with AES-256-GCM
-        and stored on the server. Set the <code style={styles.code}>GRANDFORM_SECRET_KEY</code>{" "}
+        and stored on the server. Set the <code style={styles.code}>WOLKVORM_SECRET_KEY</code>{" "}
         environment variable for a custom encryption key.
       </div>
     </div>
