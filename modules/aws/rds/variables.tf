@@ -92,4 +92,7 @@ variable "monitoring_interval" {
   type = number
   default = 0
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

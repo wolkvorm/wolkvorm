@@ -49,4 +49,7 @@ variable "enable_cluster_creator_admin_permissions" {
   type = bool
   default = true
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

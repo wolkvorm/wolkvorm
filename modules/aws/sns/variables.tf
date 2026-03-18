@@ -23,4 +23,7 @@ variable "subscriptions" {
   type    = list(object({ protocol = string, endpoint = string }))
   default = []
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

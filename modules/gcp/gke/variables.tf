@@ -59,4 +59,7 @@ variable "master_ipv4_cidr_block" {
   type = string
   default = "172.16.0.0/28"
 }
-variable "labels" { type = map(string); default = {} }
+variable "labels" {
+  type = map(string)
+  default = {}
+}

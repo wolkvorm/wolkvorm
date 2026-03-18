@@ -31,4 +31,7 @@ variable "force_detach_policies" {
   type = bool
   default = false
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

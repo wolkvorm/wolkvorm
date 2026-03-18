@@ -8,4 +8,7 @@ variable "path" {
   default = "/"
 }
 variable "policy" { type = string }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

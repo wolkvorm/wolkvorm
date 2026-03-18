@@ -59,4 +59,7 @@ variable "geo_restriction_type" {
   type = string
   default = "none"
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

@@ -11,4 +11,7 @@ variable "wait_for_validation" {
   type = bool
   default = true
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

@@ -48,4 +48,7 @@ variable "private_dns_zone_id" {
   type = string
   default = null
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

@@ -33,7 +33,10 @@ variable "tags" {
   type = list(string)
   default = []
 }
-variable "metadata" { type = map(string); default = {} }
+variable "metadata" {
+  type = map(string)
+  default = {}
+}
 variable "metadata_startup_script" {
   type = string
   default = null
@@ -46,4 +49,7 @@ variable "service_account_scopes" {
   type = list(string)
   default = ["cloud-platform"]
 }
-variable "labels" { type = map(string); default = {} }
+variable "labels" {
+  type = map(string)
+  default = {}
+}

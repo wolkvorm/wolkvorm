@@ -63,4 +63,7 @@ variable "snapshot_retention_limit" {
   type = number
   default = 1
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

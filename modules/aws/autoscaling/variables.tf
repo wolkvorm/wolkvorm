@@ -56,4 +56,7 @@ variable "protect_from_scale_in" {
   type = bool
   default = false
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

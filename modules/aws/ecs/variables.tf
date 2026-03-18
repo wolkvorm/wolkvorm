@@ -43,4 +43,7 @@ variable "security_group_ids" {
   type = list(string)
   default = []
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

@@ -70,4 +70,7 @@ variable "initial_node_count" {
   type = number
   default = 1
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

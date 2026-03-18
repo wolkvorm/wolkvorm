@@ -24,4 +24,7 @@ variable "public_access_prevention" {
   type = string
   default = "enforced"
 }
-variable "labels" { type = map(string); default = {} }
+variable "labels" {
+  type = map(string)
+  default = {}
+}

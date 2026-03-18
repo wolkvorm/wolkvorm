@@ -51,4 +51,7 @@ variable "ttl_attribute_name" {
   type = string
   default = null
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

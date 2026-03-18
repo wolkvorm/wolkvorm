@@ -40,4 +40,7 @@ variable "containers" {
   type = list(object({ name = string, access_type = optional(string, "private") }))
   default = []
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

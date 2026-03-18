@@ -15,4 +15,7 @@ variable "private_key_rsa_bits" {
   type = number
   default = 4096
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

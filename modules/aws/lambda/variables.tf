@@ -47,7 +47,10 @@ variable "reserved_concurrent_executions" {
   type = number
   default = -1
 }
-variable "environment_variables" { type = map(string); default = {} }
+variable "environment_variables" {
+  type = map(string)
+  default = {}
+}
 variable "vpc_subnet_ids" {
   type = list(string)
   default = []
@@ -64,4 +67,7 @@ variable "architectures" {
   type = list(string)
   default = ["x86_64"]
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

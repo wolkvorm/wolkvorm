@@ -43,4 +43,7 @@ variable "dlq_max_receive_count" {
   type = number
   default = 5
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

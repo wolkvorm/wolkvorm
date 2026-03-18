@@ -57,4 +57,7 @@ variable "db_password" {
   default = null
   sensitive = true
 }
-variable "labels" { type = map(string); default = {} }
+variable "labels" {
+  type = map(string)
+  default = {}
+}

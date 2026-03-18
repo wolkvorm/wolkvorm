@@ -8,4 +8,7 @@ variable "addons" {
     { name = "aws-ebs-csi-driver" }
   ]
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

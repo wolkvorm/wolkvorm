@@ -53,4 +53,7 @@ variable "listener_protocol" {
   type = string
   default = "HTTP"
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}

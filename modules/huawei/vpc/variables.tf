@@ -15,4 +15,7 @@ variable "subnets" {
   type = list(object({ name = string, cidr = string, gateway_ip = string }))
   default = []
 }
-variable "tags" { type = map(string); default = {} }
+variable "tags" {
+  type = map(string)
+  default = {}
+}
