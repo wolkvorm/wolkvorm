@@ -27,7 +27,7 @@
       "type": "string",
       "default": "Managed by Wolkvorm",
       "placeholder": "Allow inbound traffic for web server",
-      "description": "Description of the security group"
+      "description": "Description of the security group (cannot be changed after creation)"
     },
     {
       "name": "vpc_id",
@@ -35,7 +35,7 @@
       "type": "string",
       "required": true,
       "placeholder": "vpc-0123456789abcdef0",
-      "description": "VPC ID where the security group will be created",
+      "description": "VPC where the security group will be created",
       "aws_resource": "vpc"
     },
     {
@@ -60,7 +60,7 @@
           "description": "HTTPS"
         }
       ],
-      "description": "Inbound traffic rules"
+      "description": "Inbound traffic rules (CIDR-based)"
     },
     {
       "name": "egress_with_cidr_blocks",
@@ -76,7 +76,56 @@
           "description": "Allow all outbound"
         }
       ],
-      "description": "Outbound traffic rules"
+      "description": "Outbound traffic rules (CIDR-based)"
+    },
+    {
+      "name": "use_name_prefix",
+      "label": "Use Name Prefix",
+      "type": "boolean",
+      "default": true,
+      "description": "Use the name as a prefix (adds random suffix) to avoid naming conflicts",
+      "advanced": true
+    },
+    {
+      "name": "revoke_rules_on_delete",
+      "label": "Revoke Rules on Delete",
+      "type": "boolean",
+      "default": false,
+      "description": "Revoke all ingress/egress rules before deleting to avoid dependency errors",
+      "advanced": true
+    },
+    {
+      "name": "ingress_with_source_security_group_id",
+      "label": "Inbound Rules from Security Groups (JSON)",
+      "type": "multiline",
+      "placeholder": "[{\n  \"from_port\": 8080,\n  \"to_port\": 8080,\n  \"protocol\": \"tcp\",\n  \"description\": \"From ALB\",\n  \"source_security_group_id\": \"sg-0123456789abcdef0\"\n}]",
+      "description": "Inbound rules that reference another security group as the source",
+      "advanced": true
+    },
+    {
+      "name": "egress_with_source_security_group_id",
+      "label": "Outbound Rules to Security Groups (JSON)",
+      "type": "multiline",
+      "placeholder": "[{\n  \"from_port\": 5432,\n  \"to_port\": 5432,\n  \"protocol\": \"tcp\",\n  \"description\": \"To RDS\",\n  \"source_security_group_id\": \"sg-0987654321fedcba0\"\n}]",
+      "description": "Outbound rules that reference another security group as the destination",
+      "advanced": true
+    },
+    {
+      "name": "ingress_cidr_blocks",
+      "label": "Default Ingress CIDR Blocks",
+      "type": "string",
+      "placeholder": "10.0.0.0/8,172.16.0.0/12",
+      "description": "Comma-separated default CIDR blocks applied to predefined ingress rules (ingress_rules field)",
+      "advanced": true
+    },
+    {
+      "name": "egress_cidr_blocks",
+      "label": "Default Egress CIDR Blocks",
+      "type": "string",
+      "default": "0.0.0.0/0",
+      "placeholder": "0.0.0.0/0",
+      "description": "Comma-separated default CIDR blocks applied to predefined egress rules",
+      "advanced": true
     }
   ],
   "common_inputs": {

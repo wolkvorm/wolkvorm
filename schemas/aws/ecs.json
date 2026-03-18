@@ -4,7 +4,7 @@
   "description": "Amazon Elastic Container Service cluster for running containers",
   "provider": "aws",
   "icon": "ecs",
-  "category": "compute",
+  "category": "containers",
   "module": {
     "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/ecs?ref=main",
     "outputs": [
@@ -20,7 +20,78 @@
       "type": "string",
       "required": true,
       "placeholder": "my-ecs-cluster",
-      "description": "Name of the ECS cluster"
+      "description": "Name of the ECS cluster (up to 255 letters, numbers, hyphens, and underscores)"
+    },
+    {
+      "name": "create_cloudwatch_log_group",
+      "label": "Create CloudWatch Log Group",
+      "type": "boolean",
+      "default": true,
+      "description": "Create a CloudWatch log group for the cluster's container insights and execute command logs"
+    },
+    {
+      "name": "cloudwatch_log_group_retention_in_days",
+      "label": "Log Retention (days)",
+      "type": "number",
+      "default": 90,
+      "description": "Number of days to retain CloudWatch log events"
+    },
+    {
+      "name": "cloudwatch_log_group_name",
+      "label": "Log Group Name",
+      "type": "string",
+      "placeholder": "/aws/ecs/my-cluster",
+      "description": "Custom name for the CloudWatch Log Group. If not set, uses /aws/ecs/{cluster_name}",
+      "advanced": true
+    },
+    {
+      "name": "cloudwatch_log_group_class",
+      "label": "Log Group Class",
+      "type": "select",
+      "default": "STANDARD",
+      "options": ["STANDARD", "INFREQUENT_ACCESS"],
+      "description": "CloudWatch Log Group storage class",
+      "advanced": true
+    },
+    {
+      "name": "cloudwatch_log_group_kms_key_id",
+      "label": "Log Group KMS Key ARN",
+      "type": "string",
+      "placeholder": "arn:aws:kms:...",
+      "description": "KMS Key ARN for encrypting CloudWatch Log Group",
+      "advanced": true
+    },
+    {
+      "name": "cluster_setting",
+      "label": "Cluster Settings (JSON)",
+      "type": "multiline",
+      "placeholder": "[{\"name\": \"containerInsights\", \"value\": \"enabled\"}]",
+      "description": "List of settings to configure on the cluster, e.g. enable Container Insights",
+      "advanced": true
+    },
+    {
+      "name": "cluster_configuration",
+      "label": "Execute Command Config (JSON)",
+      "type": "multiline",
+      "placeholder": "{\"execute_command_configuration\": {\"logging\": \"OVERRIDE\"}}",
+      "description": "Configuration for ECS Exec (execute command) on the cluster",
+      "advanced": true
+    },
+    {
+      "name": "cluster_service_connect_defaults",
+      "label": "Service Connect Namespace (JSON)",
+      "type": "multiline",
+      "placeholder": "{\"namespace\": \"arn:aws:servicediscovery:...\" }",
+      "description": "Default Service Connect namespace for the cluster",
+      "advanced": true
+    },
+    {
+      "name": "cluster_capacity_providers",
+      "label": "Capacity Providers (JSON)",
+      "type": "multiline",
+      "placeholder": "{\"FARGATE\": {\"default_capacity_provider_strategy\": {\"weight\": 1}}}",
+      "description": "Map of capacity providers and their default strategy settings",
+      "advanced": true
     }
   ],
   "common_inputs": {

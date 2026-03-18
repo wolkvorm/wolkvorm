@@ -20,7 +20,7 @@
       "type": "string",
       "required": true,
       "placeholder": "example.com",
-      "description": "The DNS domain name for the hosted zone"
+      "description": "The DNS domain name for the hosted zone (e.g. example.com)"
     },
     {
       "name": "comment",
@@ -28,14 +28,54 @@
       "type": "string",
       "default": "Managed by Wolkvorm",
       "placeholder": "Production DNS zone",
-      "description": "Comment for the hosted zone"
+      "description": "Optional comment or description for the hosted zone"
+    },
+    {
+      "name": "private_zone",
+      "label": "Private Zone",
+      "type": "boolean",
+      "default": false,
+      "description": "Create a private hosted zone (only accessible within a VPC). Public zones are accessible from the internet."
+    },
+    {
+      "name": "vpc_id",
+      "label": "VPC ID (for private zones)",
+      "type": "string",
+      "placeholder": "vpc-0123456789abcdef0",
+      "description": "VPC to associate with the private hosted zone. Required if Private Zone is enabled.",
+      "aws_resource": "vpc"
     },
     {
       "name": "force_destroy",
       "label": "Force Destroy",
       "type": "boolean",
       "default": false,
-      "description": "Destroy zone even if it has records"
+      "description": "Allow destroying the zone even when it still contains DNS records",
+      "advanced": true
+    },
+    {
+      "name": "records",
+      "label": "DNS Records (JSON)",
+      "type": "multiline",
+      "placeholder": "[\n  {\n    \"name\": \"www\",\n    \"type\": \"A\",\n    \"ttl\": 300,\n    \"records\": [\"1.2.3.4\"]\n  },\n  {\n    \"name\": \"mail\",\n    \"type\": \"MX\",\n    \"ttl\": 300,\n    \"records\": [\"10 mail.example.com\"]\n  }\n]",
+      "description": "List of DNS record configurations to create in the zone",
+      "advanced": true
+    },
+    {
+      "name": "enable_dnssec",
+      "label": "Enable DNSSEC",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable DNSSEC signing for the hosted zone (adds security but requires registrar configuration)",
+      "advanced": true
+    },
+    {
+      "name": "delegation_set_id",
+      "label": "Delegation Set ID",
+      "type": "string",
+      "placeholder": "N1234567890ABCDEF",
+      "description": "Reusable delegation set ID to use consistent name servers across multiple zones",
+      "advanced": true
     }
   ],
   "common_inputs": {
@@ -43,5 +83,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/route53-{zone_name}/main.tf"
+  "path_template": "infra/{env}/route53-{name}/main.tf"
 }

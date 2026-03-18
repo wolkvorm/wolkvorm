@@ -1,7 +1,7 @@
 {
   "id": "alb",
   "name": "Application Load Balancer",
-  "description": "AWS Application Load Balancer for HTTP/HTTPS traffic distribution",
+  "description": "AWS Application/Network Load Balancer for traffic distribution",
   "provider": "aws",
   "icon": "alb",
   "category": "networking",
@@ -16,11 +16,19 @@
   "inputs": [
     {
       "name": "name",
-      "label": "ALB Name",
+      "label": "Load Balancer Name",
       "type": "string",
       "required": true,
       "placeholder": "my-app-alb",
-      "description": "Name of the Application Load Balancer"
+      "description": "Name of the load balancer (max 32 characters)"
+    },
+    {
+      "name": "load_balancer_type",
+      "label": "Load Balancer Type",
+      "type": "select",
+      "default": "application",
+      "options": ["application", "network", "gateway"],
+      "description": "Type of load balancer. Use 'application' for HTTP/HTTPS, 'network' for TCP/UDP"
     },
     {
       "name": "vpc_id",
@@ -28,7 +36,7 @@
       "type": "string",
       "required": true,
       "placeholder": "vpc-0123456789abcdef0",
-      "description": "VPC ID for the ALB",
+      "description": "VPC where the load balancer will be deployed",
       "aws_resource": "vpc"
     },
     {
@@ -37,30 +45,96 @@
       "type": "string",
       "required": true,
       "placeholder": "subnet-abc123,subnet-def456",
-      "description": "Comma-separated public subnet IDs",
+      "description": "Comma-separated subnet IDs (use public subnets for internet-facing)",
       "aws_resource": "subnet",
       "multi": true
     },
     {
       "name": "internal",
-      "label": "Internal ALB",
+      "label": "Internal (not internet-facing)",
       "type": "boolean",
       "default": false,
-      "description": "If true, ALB will be internal (not internet-facing)"
+      "description": "If true, the load balancer will only be accessible within the VPC"
+    },
+    {
+      "name": "security_groups",
+      "label": "Security Group IDs",
+      "type": "string",
+      "placeholder": "sg-abc123,sg-def456",
+      "description": "Comma-separated security group IDs to attach to the ALB (not applicable for NLB)",
+      "aws_resource": "security-group",
+      "multi": true
     },
     {
       "name": "enable_deletion_protection",
       "label": "Deletion Protection",
       "type": "boolean",
       "default": false,
-      "description": "Prevent accidental deletion"
+      "description": "Prevent accidental deletion of the load balancer"
+    },
+    {
+      "name": "enable_cross_zone_load_balancing",
+      "label": "Cross-Zone Load Balancing",
+      "type": "boolean",
+      "default": true,
+      "description": "Distribute traffic evenly across all targets in all enabled Availability Zones"
     },
     {
       "name": "idle_timeout",
       "label": "Idle Timeout (seconds)",
       "type": "number",
       "default": 60,
-      "description": "Time in seconds that the connection is allowed to be idle"
+      "description": "Time the connection can be idle before being closed (ALB only, 1-4000)",
+      "advanced": true
+    },
+    {
+      "name": "ip_address_type",
+      "label": "IP Address Type",
+      "type": "select",
+      "default": "ipv4",
+      "options": ["ipv4", "dualstack", "dualstack-without-public-ipv4"],
+      "description": "Type of IP addresses used by the subnets",
+      "advanced": true
+    },
+    {
+      "name": "drop_invalid_header_fields",
+      "label": "Drop Invalid Headers",
+      "type": "boolean",
+      "default": true,
+      "description": "Drop HTTP requests with invalid header fields (ALB security best practice)",
+      "advanced": true
+    },
+    {
+      "name": "enable_http2",
+      "label": "Enable HTTP/2",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable HTTP/2 for ALB (improves performance for modern clients)",
+      "advanced": true
+    },
+    {
+      "name": "target_groups",
+      "label": "Target Groups (JSON)",
+      "type": "multiline",
+      "placeholder": "{\n  \"main\": {\n    \"protocol\": \"HTTP\",\n    \"port\": 80,\n    \"target_type\": \"ip\",\n    \"health_check\": {\n      \"path\": \"/health\",\n      \"healthy_threshold\": 2\n    }\n  }\n}",
+      "description": "Map of target group configurations. Each key is the target group name.",
+      "advanced": true
+    },
+    {
+      "name": "listeners",
+      "label": "Listeners (JSON)",
+      "type": "multiline",
+      "placeholder": "{\n  \"http\": {\n    \"port\": 80,\n    \"protocol\": \"HTTP\",\n    \"forward\": {\"target_group_key\": \"main\"}\n  },\n  \"https\": {\n    \"port\": 443,\n    \"protocol\": \"HTTPS\",\n    \"certificate_arn\": \"arn:aws:acm:...\",\n    \"forward\": {\"target_group_key\": \"main\"}\n  }\n}",
+      "description": "Map of listener configurations. Each key is the listener name.",
+      "advanced": true
+    },
+    {
+      "name": "access_logs",
+      "label": "Access Logs (JSON)",
+      "type": "multiline",
+      "placeholder": "{\"bucket\": \"my-alb-logs\", \"prefix\": \"my-alb\", \"enabled\": true}",
+      "description": "S3 bucket configuration for access logs",
+      "advanced": true
     }
   ],
   "common_inputs": {

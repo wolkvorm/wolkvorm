@@ -1,7 +1,7 @@
 {
   "id": "acm",
   "name": "ACM Certificate",
-  "description": "AWS Certificate Manager SSL/TLS certificate",
+  "description": "AWS Certificate Manager SSL/TLS certificate for securing domains",
   "provider": "aws",
   "icon": "acm",
   "category": "security",
@@ -18,32 +18,63 @@
       "type": "string",
       "required": true,
       "placeholder": "example.com",
-      "description": "Primary domain name for the certificate"
+      "description": "Primary domain name for the certificate (e.g. example.com or *.example.com)"
     },
     {
       "name": "subject_alternative_names",
-      "label": "Alternative Names",
+      "label": "Additional Domain Names (SANs)",
       "type": "string",
-      "placeholder": "*.example.com,app.example.com",
-      "description": "Comma-separated subject alternative names"
+      "placeholder": "*.example.com,app.example.com,api.example.com",
+      "description": "Comma-separated additional domain names to include in the certificate"
     },
     {
       "name": "validation_method",
       "label": "Validation Method",
       "type": "select",
       "default": "DNS",
-      "options": [
-        "DNS",
-        "EMAIL"
-      ],
-      "description": "How to validate domain ownership"
+      "options": ["DNS", "EMAIL"],
+      "description": "DNS validation is recommended (automatic with Route53). Email requires manual action."
     },
     {
       "name": "wait_for_validation",
       "label": "Wait for Validation",
       "type": "boolean",
       "default": true,
-      "description": "Wait until certificate is validated"
+      "description": "Block until the certificate is fully validated and issued. Recommended: true."
+    },
+    {
+      "name": "certificate_transparency_logging_preference",
+      "label": "Certificate Transparency Logging",
+      "type": "select",
+      "default": "ENABLED",
+      "options": ["ENABLED", "DISABLED"],
+      "description": "Enable Certificate Transparency logging (required by most browsers, recommended: ENABLED)",
+      "advanced": true
+    },
+    {
+      "name": "key_algorithm",
+      "label": "Key Algorithm",
+      "type": "select",
+      "default": "RSA_2048",
+      "options": ["RSA_2048", "RSA_4096", "EC_prime256v1", "EC_secp384r1"],
+      "description": "Algorithm for the certificate key. RSA_2048 is the standard. EC keys are smaller and faster.",
+      "advanced": true
+    },
+    {
+      "name": "create_route53_records",
+      "label": "Auto-create Route53 DNS Records",
+      "type": "boolean",
+      "default": true,
+      "description": "Automatically create Route53 DNS validation records (requires Route53 zone to exist)",
+      "advanced": true
+    },
+    {
+      "name": "zone_id",
+      "label": "Route53 Zone ID",
+      "type": "string",
+      "placeholder": "Z1234567890ABCDEF",
+      "description": "Route53 hosted zone ID for automatic DNS validation record creation",
+      "advanced": true
     }
   ],
   "common_inputs": {

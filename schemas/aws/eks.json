@@ -28,15 +28,8 @@
       "label": "Kubernetes Version",
       "type": "select",
       "default": "1.31",
-      "options": [
-        "1.33",
-        "1.32",
-        "1.31",
-        "1.30",
-        "1.29",
-        "1.28"
-      ],
-      "description": "Kubernetes version for the cluster"
+      "options": ["1.33", "1.32", "1.31", "1.30", "1.29", "1.28"],
+      "description": "Kubernetes version for the EKS control plane"
     },
     {
       "name": "vpc_id",
@@ -44,6 +37,7 @@
       "type": "string",
       "required": true,
       "placeholder": "vpc-0123456789abcdef0",
+      "description": "ID of the VPC where the cluster will be deployed",
       "aws_resource": "vpc"
     },
     {
@@ -52,7 +46,7 @@
       "type": "string",
       "required": true,
       "placeholder": "subnet-abc123,subnet-def456,subnet-ghi789",
-      "description": "Comma-separated subnet IDs for control plane and node groups",
+      "description": "Comma-separated subnet IDs for the control plane and node groups",
       "aws_resource": "subnet",
       "multi": true
     },
@@ -61,14 +55,29 @@
       "label": "Public API Endpoint",
       "type": "boolean",
       "default": true,
-      "description": "Enable public API server endpoint"
+      "description": "Allow access to the Kubernetes API from the internet"
     },
     {
       "name": "endpoint_private_access",
       "label": "Private API Endpoint",
       "type": "boolean",
       "default": true,
-      "description": "Enable private API server endpoint"
+      "description": "Allow access to the Kubernetes API from within the VPC"
+    },
+    {
+      "name": "authentication_mode",
+      "label": "Authentication Mode",
+      "type": "select",
+      "default": "API_AND_CONFIG_MAP",
+      "options": ["API", "API_AND_CONFIG_MAP", "CONFIG_MAP"],
+      "description": "Authentication mode for the cluster. API_AND_CONFIG_MAP supports both EKS Access Entries and aws-auth ConfigMap"
+    },
+    {
+      "name": "enable_cluster_creator_admin_permissions",
+      "label": "Creator Admin Access",
+      "type": "boolean",
+      "default": true,
+      "description": "Automatically give the cluster creator full admin permissions via an EKS Access Entry"
     },
     {
       "name": "endpoint_public_access_cidrs",
@@ -76,14 +85,56 @@
       "type": "string",
       "default": "0.0.0.0/0",
       "placeholder": "0.0.0.0/0",
-      "description": "Comma-separated CIDRs that can access the public API endpoint"
+      "description": "Comma-separated list of CIDR blocks that can access the public API server endpoint",
+      "advanced": true
     },
     {
-      "name": "enable_cluster_creator_admin_permissions",
-      "label": "Creator Admin Access",
+      "name": "deletion_protection",
+      "label": "Deletion Protection",
       "type": "boolean",
-      "default": true,
-      "description": "Give cluster creator admin permissions",
+      "default": false,
+      "description": "Prevent accidental cluster deletion. Must be disabled before destroying.",
+      "advanced": true
+    },
+    {
+      "name": "enabled_log_types",
+      "label": "Control Plane Log Types",
+      "type": "string",
+      "default": "audit,api,authenticator",
+      "placeholder": "audit,api,authenticator,controllerManager,scheduler",
+      "description": "Comma-separated list of control plane log types to send to CloudWatch",
+      "advanced": true
+    },
+    {
+      "name": "eks_managed_node_groups",
+      "label": "Managed Node Groups (JSON)",
+      "type": "multiline",
+      "placeholder": "{\n  \"default\": {\n    \"instance_types\": [\"t3.medium\"],\n    \"min_size\": 1,\n    \"max_size\": 3,\n    \"desired_size\": 2\n  }\n}",
+      "description": "Map of EKS managed node group definitions. Each key is the node group name.",
+      "advanced": true
+    },
+    {
+      "name": "fargate_profiles",
+      "label": "Fargate Profiles (JSON)",
+      "type": "multiline",
+      "placeholder": "{\n  \"default\": {\n    \"selectors\": [\n      {\"namespace\": \"kube-system\"}\n    ]\n  }\n}",
+      "description": "Map of Fargate profile definitions for serverless pods",
+      "advanced": true
+    },
+    {
+      "name": "access_entries",
+      "label": "Access Entries (JSON)",
+      "type": "multiline",
+      "placeholder": "{\n  \"admin\": {\n    \"principal_arn\": \"arn:aws:iam::123456789012:role/admin\",\n    \"policy_associations\": {\n      \"admin\": {\"policy_arn\": \"arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy\"}\n    }\n  }\n}",
+      "description": "Map of access entries to add to the cluster for IAM principals",
+      "advanced": true
+    },
+    {
+      "name": "cluster_addons",
+      "label": "Cluster Addons (JSON)",
+      "type": "multiline",
+      "placeholder": "{\n  \"coredns\": {\"most_recent\": true},\n  \"kube-proxy\": {\"most_recent\": true},\n  \"vpc-cni\": {\"most_recent\": true},\n  \"aws-ebs-csi-driver\": {\"most_recent\": true}\n}",
+      "description": "Map of EKS add-on configurations to enable on the cluster",
       "advanced": true
     }
   ],
@@ -92,5 +143,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/eks-{cluster_name}/main.tf"
+  "path_template": "infra/{env}/eks-{name}/main.tf"
 }

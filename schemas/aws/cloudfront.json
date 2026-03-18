@@ -1,7 +1,7 @@
 {
   "id": "cloudfront",
   "name": "CloudFront Distribution",
-  "description": "Amazon CloudFront CDN distribution for content delivery",
+  "description": "Amazon CloudFront CDN distribution for fast, secure content delivery",
   "provider": "aws",
   "icon": "cloudfront",
   "category": "networking",
@@ -16,25 +16,25 @@
   "inputs": [
     {
       "name": "comment",
-      "label": "Distribution Name",
+      "label": "Distribution Name / Comment",
       "type": "string",
       "required": true,
       "placeholder": "My App CDN",
-      "description": "Comment/name for the distribution"
+      "description": "Human-readable name or comment for the distribution"
     },
     {
       "name": "enabled",
       "label": "Enabled",
       "type": "boolean",
       "default": true,
-      "description": "Enable the distribution"
+      "description": "Enable the distribution immediately after creation"
     },
     {
       "name": "is_ipv6_enabled",
       "label": "IPv6 Enabled",
       "type": "boolean",
       "default": true,
-      "description": "Enable IPv6 support"
+      "description": "Enable IPv6 support for the distribution"
     },
     {
       "name": "default_root_object",
@@ -42,19 +42,78 @@
       "type": "string",
       "default": "index.html",
       "placeholder": "index.html",
-      "description": "Object to return when root URL is requested"
+      "description": "File to serve when the root URL is requested (e.g. index.html)"
     },
     {
       "name": "price_class",
       "label": "Price Class",
       "type": "select",
       "default": "PriceClass_100",
-      "options": [
-        "PriceClass_All",
-        "PriceClass_200",
-        "PriceClass_100"
-      ],
-      "description": "Price class for the distribution edge locations"
+      "options": ["PriceClass_All", "PriceClass_200", "PriceClass_100"],
+      "description": "PriceClass_100 = US/Europe only (cheapest), PriceClass_All = all edge locations"
+    },
+    {
+      "name": "http_version",
+      "label": "HTTP Version",
+      "type": "select",
+      "default": "http2",
+      "options": ["http1.1", "http2", "http2and3", "http3"],
+      "description": "Maximum HTTP version to support for viewers. http2and3 is recommended for best performance."
+    },
+    {
+      "name": "aliases",
+      "label": "Alternate Domain Names (CNAMEs)",
+      "type": "string",
+      "placeholder": "www.example.com,example.com",
+      "description": "Comma-separated custom domain names. Requires an ACM certificate in us-east-1."
+    },
+    {
+      "name": "origins",
+      "label": "Origins (JSON)",
+      "type": "multiline",
+      "placeholder": "{\n  \"s3\": {\n    \"domain_name\": \"my-bucket.s3.amazonaws.com\",\n    \"s3_origin_config\": {\"origin_access_identity\": \"\"}\n  },\n  \"api\": {\n    \"domain_name\": \"api.example.com\",\n    \"custom_origin_config\": {\"http_port\": 80, \"https_port\": 443, \"origin_protocol_policy\": \"https-only\"}\n  }\n}",
+      "description": "Map of origins (S3, ALB, custom HTTP servers). Each key is the origin ID.",
+      "advanced": true
+    },
+    {
+      "name": "default_cache_behavior",
+      "label": "Default Cache Behavior (JSON)",
+      "type": "multiline",
+      "placeholder": "{\n  \"target_origin_id\": \"s3\",\n  \"viewer_protocol_policy\": \"redirect-to-https\",\n  \"allowed_methods\": [\"GET\", \"HEAD\"],\n  \"cached_methods\": [\"GET\", \"HEAD\"],\n  \"compress\": true,\n  \"use_forwarded_values\": false,\n  \"cache_policy_id\": \"658327ea-f89d-4fab-a63d-7e88639e58f6\"\n}",
+      "description": "Default behavior for requests not matching other cache behaviors",
+      "advanced": true
+    },
+    {
+      "name": "ordered_cache_behavior",
+      "label": "Ordered Cache Behaviors (JSON)",
+      "type": "multiline",
+      "placeholder": "[{\n  \"path_pattern\": \"/api/*\",\n  \"target_origin_id\": \"api\",\n  \"viewer_protocol_policy\": \"https-only\",\n  \"allowed_methods\": [\"GET\",\"HEAD\",\"OPTIONS\",\"PUT\",\"POST\",\"PATCH\",\"DELETE\"]\n}]",
+      "description": "List of additional cache behaviors for specific URL patterns (evaluated in order)",
+      "advanced": true
+    },
+    {
+      "name": "restrictions",
+      "label": "Geo Restrictions (JSON)",
+      "type": "multiline",
+      "placeholder": "{\n  \"restriction_type\": \"none\"\n}",
+      "description": "Geographic restriction settings for the distribution",
+      "advanced": true
+    },
+    {
+      "name": "viewer_certificate",
+      "label": "Viewer Certificate (JSON)",
+      "type": "multiline",
+      "placeholder": "{\n  \"acm_certificate_arn\": \"arn:aws:acm:us-east-1:...\",\n  \"ssl_support_method\": \"sni-only\",\n  \"minimum_protocol_version\": \"TLSv1.2_2021\"\n}",
+      "description": "SSL/TLS certificate config. Must be an ACM cert in us-east-1 for custom domains.",
+      "advanced": true
+    },
+    {
+      "name": "logging_config",
+      "label": "Access Logging (JSON)",
+      "type": "multiline",
+      "placeholder": "{\"bucket\": \"my-logs.s3.amazonaws.com\", \"prefix\": \"cloudfront/\", \"include_cookies\": false}",
+      "description": "S3 bucket configuration for CloudFront access logs",
+      "advanced": true
     }
   ],
   "common_inputs": {
@@ -62,5 +121,5 @@
     "environment": true,
     "tags": true
   },
-  "path_template": "infra/{env}/cdn-{origin_id}/main.tf"
+  "path_template": "infra/{env}/cdn-{comment}/main.tf"
 }
