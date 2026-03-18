@@ -6,7 +6,12 @@
   "icon": "cloudfront",
   "category": "networking",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/cloudfront?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/cloudfront?ref=main",
+    "outputs": [
+      "cloudfront_distribution_arn",
+      "cloudfront_distribution_id",
+      "cloudfront_distribution_domain_name"
+    ]
   },
   "inputs": [
     {

@@ -6,7 +6,12 @@
   "icon": "ecs",
   "category": "compute",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/ecs?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/ecs?ref=main",
+    "outputs": [
+      "cluster_arn",
+      "cluster_id",
+      "cluster_name"
+    ]
   },
   "inputs": [
     {

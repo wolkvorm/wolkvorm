@@ -6,7 +6,11 @@
   "icon": "s3",
   "category": "storage",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/s3?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/s3?ref=main",
+    "outputs": [
+      "s3_bucket_arn",
+      "s3_bucket_id"
+    ]
   },
   "inputs": [
     {

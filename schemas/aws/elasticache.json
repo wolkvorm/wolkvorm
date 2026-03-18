@@ -6,7 +6,11 @@
   "icon": "elasticache",
   "category": "database",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/elasticache?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/elasticache?ref=main",
+    "outputs": [
+      "replication_group_arn",
+      "cluster_arn"
+    ]
   },
   "inputs": [
     {

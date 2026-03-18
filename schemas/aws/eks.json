@@ -6,7 +6,13 @@
   "icon": "eks",
   "category": "containers",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/eks?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/eks?ref=main",
+    "outputs": [
+      "cluster_arn",
+      "cluster_endpoint",
+      "cluster_id",
+      "cluster_name"
+    ]
   },
   "inputs": [
     {

@@ -6,7 +6,12 @@
   "icon": "key-pair",
   "category": "compute",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/key-pair?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/key-pair?ref=main",
+    "outputs": [
+      "key_pair_arn",
+      "key_pair_id",
+      "key_pair_name"
+    ]
   },
   "inputs": [
     {

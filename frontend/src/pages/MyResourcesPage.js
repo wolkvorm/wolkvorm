@@ -7,14 +7,50 @@ import { API, authFetch } from "../config";
 // Extract ARN from terraform outputs (various possible field names)
 function getResourceArn(outputs) {
   if (!outputs) return null;
-  const arnKeys = ["arn", "bucket_arn", "s3_bucket_arn", "role_arn", "iam_role_arn",
-    "function_arn", "lambda_function_arn", "cluster_arn", "db_instance_arn",
-    "vpc_arn", "key_pair_arn", "policy_arn", "iam_policy_arn",
-    "topic_arn", "sns_topic_arn", "queue_arn", "sqs_queue_arn",
-    "repository_arn", "ecr_repository_arn", "distribution_arn",
-    "lb_arn", "alb_arn", "security_group_arn", "acm_certificate_arn",
-    "key_arn", "kms_key_arn", "secret_arn", "replication_group_arn",
-    "cluster_endpoint", "id"];
+  const arnKeys = [
+    // Generic
+    "arn", "id",
+    // S3
+    "s3_bucket_arn", "s3_bucket_id",
+    // EC2 / ALB
+    "dns_name", "lb_arn", "lb_dns_name", "alb_arn",
+    // IAM
+    "iam_role_arn", "role_arn", "iam_policy_arn", "policy_arn", "instance_profile_arn",
+    // Lambda
+    "lambda_function_arn", "lambda_function_invoke_arn", "lambda_function_name",
+    // EKS / ECS
+    "cluster_arn", "cluster_endpoint", "cluster_id", "cluster_name",
+    // RDS
+    "db_instance_arn", "db_instance_endpoint", "db_instance_identifier",
+    // VPC
+    "vpc_id", "vpc_arn", "vpc_cidr_block",
+    // ECR
+    "repository_arn", "repository_url", "repository_name",
+    // SNS / SQS
+    "topic_arn", "queue_arn", "queue_url",
+    // KMS
+    "key_arn", "key_id",
+    // ACM
+    "acm_certificate_arn",
+    // Secrets Manager
+    "secret_arn", "secret_id", "secret_name",
+    // Security Group
+    "security_group_arn", "security_group_id",
+    // CloudFront
+    "cloudfront_distribution_arn", "cloudfront_distribution_id", "cloudfront_distribution_domain_name",
+    // DynamoDB
+    "dynamodb_table_arn", "dynamodb_table_id",
+    // ElastiCache
+    "replication_group_arn",
+    // AutoScaling
+    "autoscaling_group_arn", "autoscaling_group_name",
+    // APIGateway
+    "api_arn", "api_id", "api_endpoint",
+    // Route53
+    "name_servers",
+    // Key Pair
+    "key_pair_arn", "key_pair_id", "key_pair_name",
+  ];
   for (const key of arnKeys) {
     if (outputs[key] && typeof outputs[key] === "string" && outputs[key].length > 0) {
       return { key, value: outputs[key] };

@@ -6,7 +6,12 @@
   "icon": "apigateway",
   "category": "networking",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/apigateway?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/apigateway?ref=main",
+    "outputs": [
+      "api_arn",
+      "api_id",
+      "api_endpoint"
+    ]
   },
   "inputs": [
     {

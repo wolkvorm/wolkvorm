@@ -26,8 +26,9 @@ type SchemaInput struct {
 
 // SchemaModule holds the Terraform module source info.
 type SchemaModule struct {
-	Source  string `json:"source"`
-	Version string `json:"version,omitempty"`
+	Source  string   `json:"source"`
+	Version string   `json:"version,omitempty"`
+	Outputs []string `json:"outputs,omitempty"` // output names to expose at root level
 }
 
 // SchemaCommonInputs flags for region/environment/tags.

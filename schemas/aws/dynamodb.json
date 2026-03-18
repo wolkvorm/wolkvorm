@@ -6,7 +6,11 @@
   "icon": "dynamodb",
   "category": "database",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/dynamodb?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/dynamodb?ref=main",
+    "outputs": [
+      "dynamodb_table_arn",
+      "dynamodb_table_id"
+    ]
   },
   "inputs": [
     {

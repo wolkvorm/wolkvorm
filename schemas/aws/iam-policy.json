@@ -6,7 +6,12 @@
   "icon": "iam",
   "category": "security",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/iam-policy?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/iam-policy?ref=main",
+    "outputs": [
+      "arn",
+      "id",
+      "name"
+    ]
   },
   "inputs": [
     {

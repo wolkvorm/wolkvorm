@@ -6,7 +6,12 @@
   "icon": "sqs",
   "category": "messaging",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/sqs?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/sqs?ref=main",
+    "outputs": [
+      "queue_arn",
+      "queue_url",
+      "queue_id"
+    ]
   },
   "inputs": [
     {

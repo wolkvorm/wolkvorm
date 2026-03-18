@@ -6,7 +6,11 @@
   "icon": "security-group",
   "category": "networking",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/security-group?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/security-group?ref=main",
+    "outputs": [
+      "security_group_arn",
+      "security_group_id"
+    ]
   },
   "inputs": [
     {

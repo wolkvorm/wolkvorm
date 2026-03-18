@@ -165,6 +165,16 @@ func GenerateHCLWithOptions(schema *ResourceSchema, inputs map[string]any, env s
 
 	b.WriteString("}\n")
 
+	// Generate output blocks for module outputs (not applicable to direct resource blocks)
+	if schema.ResourceType == "" && len(schema.Module.Outputs) > 0 {
+		b.WriteString("\n")
+		for _, outName := range schema.Module.Outputs {
+			b.WriteString(fmt.Sprintf("output \"%s\" {\n", outName))
+			b.WriteString(fmt.Sprintf("  value = module.this.%s\n", outName))
+			b.WriteString("}\n")
+		}
+	}
+
 	return b.String()
 }
 

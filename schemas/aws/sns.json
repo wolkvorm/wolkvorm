@@ -6,7 +6,11 @@
   "icon": "sns",
   "category": "messaging",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/sns?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/sns?ref=main",
+    "outputs": [
+      "topic_arn",
+      "topic_id"
+    ]
   },
   "inputs": [
     {

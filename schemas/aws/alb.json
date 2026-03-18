@@ -6,7 +6,12 @@
   "icon": "alb",
   "category": "networking",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/alb?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/alb?ref=main",
+    "outputs": [
+      "arn",
+      "dns_name",
+      "id"
+    ]
   },
   "inputs": [
     {

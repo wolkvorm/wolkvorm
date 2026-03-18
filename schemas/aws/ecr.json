@@ -6,7 +6,12 @@
   "icon": "ecr",
   "category": "compute",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/ecr?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/ecr?ref=main",
+    "outputs": [
+      "repository_arn",
+      "repository_url",
+      "repository_name"
+    ]
   },
   "inputs": [
     {

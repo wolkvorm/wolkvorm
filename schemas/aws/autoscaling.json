@@ -6,7 +6,12 @@
   "icon": "autoscaling",
   "category": "compute",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/autoscaling?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/autoscaling?ref=main",
+    "outputs": [
+      "autoscaling_group_arn",
+      "autoscaling_group_id",
+      "autoscaling_group_name"
+    ]
   },
   "inputs": [
     {

@@ -6,7 +6,12 @@
   "icon": "iam",
   "category": "security",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/iam-role?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/iam-role?ref=main",
+    "outputs": [
+      "arn",
+      "name",
+      "instance_profile_arn"
+    ]
   },
   "inputs": [
     {

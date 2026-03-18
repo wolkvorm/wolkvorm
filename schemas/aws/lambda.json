@@ -6,7 +6,12 @@
   "icon": "lambda",
   "category": "compute",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/lambda?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/lambda?ref=main",
+    "outputs": [
+      "lambda_function_arn",
+      "lambda_function_name",
+      "lambda_function_invoke_arn"
+    ]
   },
   "inputs": [
     {

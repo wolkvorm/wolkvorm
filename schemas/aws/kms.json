@@ -6,7 +6,11 @@
   "icon": "kms",
   "category": "security",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/kms?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/kms?ref=main",
+    "outputs": [
+      "key_arn",
+      "key_id"
+    ]
   },
   "inputs": [
     {

@@ -6,7 +6,12 @@
   "icon": "rds",
   "category": "database",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/rds?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/rds?ref=main",
+    "outputs": [
+      "db_instance_arn",
+      "db_instance_endpoint",
+      "db_instance_identifier"
+    ]
   },
   "inputs": [
     {

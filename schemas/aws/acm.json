@@ -6,7 +6,10 @@
   "icon": "acm",
   "category": "security",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/acm?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/acm?ref=main",
+    "outputs": [
+      "acm_certificate_arn"
+    ]
   },
   "inputs": [
     {

@@ -6,7 +6,11 @@
   "icon": "ec2",
   "category": "compute",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/ec2?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/ec2?ref=main",
+    "outputs": [
+      "arn",
+      "id"
+    ]
   },
   "inputs": [
     {

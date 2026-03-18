@@ -6,7 +6,12 @@
   "icon": "route53",
   "category": "networking",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/route53?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/route53?ref=main",
+    "outputs": [
+      "arn",
+      "id",
+      "name_servers"
+    ]
   },
   "inputs": [
     {
