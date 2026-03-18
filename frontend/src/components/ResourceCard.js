@@ -35,11 +35,20 @@ const categoryColors = {
   security: { bg: "rgba(239,68,68,0.12)", text: "#f87171" },
 };
 
+const providerBadge = {
+  aws:          { label: "AWS",         color: "#FF9900", bg: "rgba(255,153,0,0.13)",   icon: "☁️" },
+  azurerm:      { label: "Azure",       color: "#0078D4", bg: "rgba(0,120,212,0.13)",   icon: "🔷" },
+  google:       { label: "GCP",         color: "#4285F4", bg: "rgba(66,133,244,0.13)",  icon: "🌐" },
+  huaweicloud:  { label: "Huawei",      color: "#CF0A2C", bg: "rgba(207,10,44,0.13)",   icon: "🔴" },
+  digitalocean: { label: "DO",          color: "#0080FF", bg: "rgba(0,128,255,0.13)",   icon: "🌊" },
+};
+
 function ResourceCard({ resource }) {
   const { theme } = useTheme();
   const styles = getStyles(theme);
   const navigate = useNavigate();
   const cat = categoryColors[resource.category] || categoryColors.compute;
+  const prov = providerBadge[resource.provider] || { label: resource.provider?.toUpperCase(), color: "#64748b", bg: "rgba(100,116,139,0.12)", icon: "☁️" };
 
   return (
     <div
@@ -73,7 +82,10 @@ function ResourceCard({ resource }) {
         <div style={styles.description}>{resource.description}</div>
       </div>
       <div style={styles.footer}>
-        <span style={styles.provider}>{resource.provider.toUpperCase()}</span>
+        <span style={{ ...styles.providerBadge, background: prov.bg, color: prov.color }}>
+          <span style={{ fontSize: 12 }}>{prov.icon}</span>
+          {prov.label}
+        </span>
         <span style={styles.inputs}>
           {resource.inputs?.length || 0} inputs
         </span>
@@ -140,11 +152,15 @@ function getStyles(theme) {
     paddingTop: 10,
     borderTop: `1px solid ${theme.colors.border}`,
   },
-  provider: {
+  providerBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 4,
     fontSize: 11,
-    fontWeight: 600,
-    color: theme.colors.primary,
-    letterSpacing: "1px",
+    fontWeight: 700,
+    padding: "3px 8px",
+    borderRadius: 10,
+    letterSpacing: "0.3px",
   },
   inputs: {
     fontSize: 11,

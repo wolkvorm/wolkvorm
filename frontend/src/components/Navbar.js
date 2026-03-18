@@ -1,9 +1,17 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/wolkvorm-logo.png";
 import { API, authFetch } from "../config";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
+
+const PROVIDERS = [
+  { id: "aws",          label: "AWS",         icon: "☁️",  color: "#FF9900" },
+  { id: "azurerm",      label: "Azure",        icon: "🔷", color: "#0078D4" },
+  { id: "google",       label: "GCP",          icon: "🌐", color: "#4285F4" },
+  { id: "huaweicloud",  label: "Huawei",       icon: "🔴", color: "#CF0A2C" },
+  { id: "digitalocean", label: "DigitalOcean", icon: "🌊", color: "#0080FF" },
+];
 
 const ROLE_COLORS = {
   admin: "#a78bfa",
@@ -46,9 +54,11 @@ function Navbar() {
   const location = useLocation();
   const { user, logout, role, canAdmin, canOperate } = useAuth();
   const { theme, toggleTheme, isDark } = useTheme();
+  const navigate = useNavigate();
   const [settingsStatus, setSettingsStatus] = useState(null);
   const [pendingApprovals, setPendingApprovals] = useState(0);
   const [collapsed, setCollapsed] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(true);
 
   useEffect(() => {
     authFetch(`${API}/api/settings`)
@@ -111,18 +121,54 @@ function Navbar() {
           {!collapsed && <span style={s.navGroupLabel}>MAIN</span>}
           {navLinks.slice(0, 4).map((link) => {
             const active = link.match ? link.match(location.pathname) : isActive(link.to);
+            const isResources = link.to === "/resources";
             return (
-              <Link key={link.to} to={link.to} style={{ ...s.navItem, ...(active ? s.navItemActive : {}) }} title={collapsed ? link.label : undefined}>
-                <div style={{ ...s.navIconWrap, ...(active ? s.navIconWrapActive : {}) }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d={link.icon} />
-                    {link.icon2 && <path d={link.icon2} />}
-                  </svg>
+              <div key={link.to}>
+                <div
+                  style={{ ...s.navItem, ...(active ? s.navItemActive : {}), cursor: "pointer" }}
+                  title={collapsed ? link.label : undefined}
+                  onClick={() => {
+                    if (isResources && !collapsed) {
+                      setResourcesOpen((v) => !v);
+                    } else {
+                      navigate(link.to);
+                    }
+                  }}
+                >
+                  <div style={{ ...s.navIconWrap, ...(active ? s.navIconWrapActive : {}) }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d={link.icon} />
+                      {link.icon2 && <path d={link.icon2} />}
+                    </svg>
+                  </div>
+                  {!collapsed && <span style={s.navLabel}>{link.label}</span>}
+                  {!collapsed && link.badge > 0 && <span style={s.badge}>{link.badge}</span>}
+                  {!collapsed && isResources && (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                      style={{ transition: "transform 0.2s", transform: resourcesOpen ? "rotate(-90deg)" : "rotate(0deg)", marginLeft: "auto", opacity: 0.5 }}>
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  )}
+                  {active && <div style={s.activeBar} />}
                 </div>
-                {!collapsed && <span style={s.navLabel}>{link.label}</span>}
-                {!collapsed && link.badge > 0 && <span style={s.badge}>{link.badge}</span>}
-                {active && <div style={s.activeBar} />}
-              </Link>
+                {isResources && !collapsed && resourcesOpen && (
+                  <div style={s.subLinks}>
+                    {PROVIDERS.map((p) => {
+                      const subActive = location.pathname === "/resources" && location.search.includes(`provider=${p.id}`);
+                      return (
+                        <Link
+                          key={p.id}
+                          to={`/resources?provider=${p.id}`}
+                          style={{ ...s.subLink, ...(subActive ? { color: p.color, background: `rgba(0,0,0,0.04)` } : {}) }}
+                        >
+                          <span style={{ fontSize: 13 }}>{p.icon}</span>
+                          <span>{p.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
@@ -323,6 +369,27 @@ function getStyles(theme, collapsed) {
       height: 20,
       borderRadius: "0 3px 3px 0",
       background: theme.colors.primary,
+    },
+    subLinks: {
+      display: "flex",
+      flexDirection: "column",
+      marginLeft: 20,
+      borderLeft: `2px solid ${theme.colors.border}`,
+      paddingLeft: 8,
+      marginBottom: 4,
+    },
+    subLink: {
+      display: "flex",
+      alignItems: "center",
+      gap: 7,
+      padding: "6px 10px",
+      borderRadius: theme.radius.sm,
+      textDecoration: "none",
+      fontSize: 12,
+      fontWeight: 500,
+      color: theme.colors.textMuted,
+      transition: "all 0.15s",
+      whiteSpace: "nowrap",
     },
     bottomSection: {
       padding: collapsed ? "12px 8px" : "12px 16px",
