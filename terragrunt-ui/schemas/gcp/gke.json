@@ -110,6 +110,6 @@
   },
   "path_template": "infra/{env}/gcp-gke-{name}/main.tf",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/gcp/gke?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//gcp/gke?ref=main"
   }
 }

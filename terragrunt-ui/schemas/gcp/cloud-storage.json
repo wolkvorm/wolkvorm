@@ -96,6 +96,6 @@
   },
   "path_template": "infra/{env}/gcp-storage-{name}/main.tf",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/gcp/cloud-storage?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//gcp/cloud-storage?ref=main"
   }
 }

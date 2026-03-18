@@ -162,6 +162,6 @@
   },
   "path_template": "infra/{env}/azure-vm-{name}/main.tf",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/azure/virtual-machine?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//azure/virtual-machine?ref=main"
   }
 }

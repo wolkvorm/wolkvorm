@@ -65,6 +65,6 @@
   },
   "path_template": "infra/{env}/do-spaces-{name}/main.tf",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/digitalocean/spaces?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//digitalocean/spaces?ref=main"
   }
 }

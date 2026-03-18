@@ -65,6 +65,6 @@
   },
   "path_template": "infra/{env}/azure-vnet-{name}/main.tf",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/azure/vnet?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//azure/vnet?ref=main"
   }
 }

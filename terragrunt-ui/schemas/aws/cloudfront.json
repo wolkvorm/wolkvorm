@@ -6,7 +6,7 @@
   "icon": "cloudfront",
   "category": "networking",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/cloudfront?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//aws/cloudfront?ref=main"
   },
   "inputs": [
     {

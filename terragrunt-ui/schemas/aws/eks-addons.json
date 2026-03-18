@@ -6,7 +6,7 @@
   "icon": "eks",
   "category": "containers",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/eks-addons?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//aws/eks-addons?ref=main"
   },
   "inputs": [
     {

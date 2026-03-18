@@ -113,6 +113,6 @@
   },
   "path_template": "infra/{env}/gcp-cloudsql-{name}/main.tf",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/gcp/cloud-sql?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//gcp/cloud-sql?ref=main"
   }
 }

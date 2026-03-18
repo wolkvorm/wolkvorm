@@ -145,6 +145,6 @@
   },
   "path_template": "infra/{env}/azure-postgresql-{name}/main.tf",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/azure/postgresql?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//azure/postgresql?ref=main"
   }
 }

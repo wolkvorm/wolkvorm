@@ -6,7 +6,7 @@
   "icon": "route53",
   "category": "networking",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/route53?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//aws/route53?ref=main"
   },
   "inputs": [
     {

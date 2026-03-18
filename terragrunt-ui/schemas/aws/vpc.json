@@ -6,7 +6,7 @@
   "icon": "vpc",
   "category": "networking",
   "module": {
-    "source": "git::https://github.com/wolkvorm/wolkvorm.git//terraform-modules/aws/vpc?ref=main"
+    "source": "git::https://github.com/wolkvorm/wolkvorm.git//aws/vpc?ref=main"
   },
   "inputs": [
     {
