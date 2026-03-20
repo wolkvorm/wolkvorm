@@ -209,6 +209,10 @@ module "apigateway" {
   description   = "Wolkvorm test API"
   protocol_type = "HTTP"
 
+  create_domain_name    = false
+  create_domain_records = false
+  create_certificate    = false
+
   tags = local.tags
 }
 
@@ -275,9 +279,11 @@ module "rds" {
 
   identifier = var.name_prefix
 
-  engine         = "mysql"
-  engine_version = "8.0"
-  instance_class = "db.t3.micro"
+  engine               = "mysql"
+  engine_version       = "8.0"
+  major_engine_version = "8.0"
+  family               = "mysql8.0"
+  instance_class       = "db.t3.micro"
 
   allocated_storage = 20
   storage_type      = "gp2"
@@ -299,11 +305,12 @@ module "rds" {
 module "elasticache" {
   source = "git::https://github.com/wolkvorm/wolkvorm.git//modules/aws/elasticache?ref=main"
 
-  cluster_id     = "${var.name_prefix}-${random_id.suffix.hex}"
-  engine         = "redis"
-  engine_version = "7.1"
-  node_type      = "cache.t3.micro"
-  num_cache_nodes = 1
+  cluster_id           = "${var.name_prefix}-${random_id.suffix.hex}"
+  replication_group_id = "${var.name_prefix}-rg-${random_id.suffix.hex}"
+  engine               = "redis"
+  engine_version       = "7.1"
+  node_type            = "cache.t3.micro"
+  num_cache_nodes      = 1
 
   subnet_ids         = module.vpc.private_subnets
   security_group_ids = [module.security_group.security_group_id]
@@ -401,7 +408,7 @@ module "cloudfront" {
   price_class         = "PriceClass_100"
   http_version        = "http2"
 
-  origins = {
+  origin = {
     alb = {
       domain_name = module.alb.dns_name
       custom_origin_config = {
