@@ -79,7 +79,7 @@ output "ecs_cluster_arn" {
 
 # API Gateway
 output "apigateway_api_endpoint" {
-  value = module.apigateway.apigatewayv2_api_api_endpoint
+  value = module.apigateway.api_endpoint
 }
 
 # ALB
@@ -100,7 +100,7 @@ output "rds_arn" {
 
 # ElastiCache
 output "elasticache_cluster_id" {
-  value = module.elasticache.cluster_id
+  value = module.elasticache.cluster_arn
 }
 
 # EC2
