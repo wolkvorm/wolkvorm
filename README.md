@@ -11,16 +11,14 @@
 - Docker & Docker Compose
 - AWS IAM Role (EC2 instance profile)
 
-### Option A: Production (pre-built images)
-
-No repo clone needed. Just download the compose file and run:
+### Install with Pre-built Images (recommended)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/wolkvorm/wolkvorm/main/docker-compose.prod.yml -o docker-compose.yml
 docker compose up -d
 ```
 
-### Option B: Development (build from source)
+### Install from Source
 
 ```bash
 git clone https://github.com/wolkvorm/wolkvorm.git
@@ -30,10 +28,14 @@ docker compose up -d --build
 
 Open `http://localhost:3000` in your browser. The first visit will prompt you to create an admin account.
 
-### Update to Latest Version
+### Update
 
 ```bash
+# Pre-built images
 docker compose pull && docker compose up -d
+
+# From source
+git pull && docker compose up -d --build
 ```
 
 ### Ports
@@ -63,31 +65,14 @@ curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker ubuntu
 newgrp docker
 
-# Download and run (pre-built images, no build needed)
+# Option 1: Pre-built images (fast, ~30 seconds)
 curl -fsSL https://raw.githubusercontent.com/wolkvorm/wolkvorm/main/docker-compose.prod.yml -o docker-compose.yml
 docker compose up -d
-```
 
-The application will be available at `http://<PUBLIC_IP>:3000` within ~30 seconds.
-
-### 3. Update to Latest
-
-```bash
-docker compose pull && docker compose up -d
-```
-
-Images are automatically built and published to GHCR on every push to main.
-
-### 4. Deploy Custom Changes (from source)
-
-If you've modified the source code (schemas, modules, frontend, backend):
-
-```bash
-rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'frontend/build' \
-  -e "ssh -i your-key.pem" \
-  ./ ubuntu@<IP>:~/wolkvorm/
-
-ssh -i your-key.pem ubuntu@<IP> "cd ~/wolkvorm && docker compose up -d --build"
+# Option 2: Build from source (for customization, ~5 minutes)
+git clone https://github.com/wolkvorm/wolkvorm.git ~/wolkvorm
+cd ~/wolkvorm
+docker compose up -d --build
 ```
 
 ## Supported Services (25)
