@@ -108,7 +108,8 @@ function Navbar() {
       <div style={s.logoSection}>
         <Link to="/" style={s.logoLink}>
           <img src={logo} alt="Wolkvorm" style={s.logoImg} />
-          {!collapsed && <span style={s.logoText}>Wolkvorm</span>}
+          {!collapsed && <span style={s.logoText}><span>Wolk</span><span style={{ color: theme.colors.primary }}>vorm</span></span>}
+          {!collapsed && <span style={{ fontSize: 9, fontWeight: 700, color: theme.colors.warning, background: `${theme.colors.warning}22`, padding: "1px 5px", borderRadius: 4, letterSpacing: 0.5, marginLeft: 4 }}>BETA</span>}
         </Link>
         <button onClick={() => setCollapsed(!collapsed)} style={s.collapseBtn} title={collapsed ? "Expand" : "Collapse"}>
           <ChevronIcon collapsed={collapsed} />

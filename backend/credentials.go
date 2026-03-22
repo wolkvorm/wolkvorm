@@ -12,11 +12,12 @@ import (
 	"sync"
 )
 
-// AWSCredentials holds AWS access credentials.
+// AWSCredentials holds global AWS configuration.
+// Authentication uses EC2 instance profile (IAM Role) — no static keys needed.
 type AWSCredentials struct {
-	AuthMethod      string `json:"auth_method"` // "access_key" or "iam_role"
-	AccessKeyID     string `json:"access_key_id"`
-	SecretAccessKey string `json:"secret_access_key"`
+	AuthMethod      string `json:"auth_method"`
+	AccessKeyID     string `json:"access_key_id,omitempty"`
+	SecretAccessKey string `json:"secret_access_key,omitempty"`
 	DefaultRegion   string `json:"default_region"`
 }
 
@@ -255,22 +256,10 @@ func GetSettingsStatus() SettingsStatus {
 
 	status := SettingsStatus{}
 
-	// AWS status
-	if appSettings.AWS.AuthMethod == "iam_role" {
-		status.AWS.Configured = true
-		status.AWS.AuthMethod = "iam_role"
-		status.AWS.DefaultRegion = appSettings.AWS.DefaultRegion
-	} else if appSettings.AWS.AccessKeyID != "" {
-		status.AWS.Configured = true
-		status.AWS.AuthMethod = "access_key"
-		status.AWS.DefaultRegion = appSettings.AWS.DefaultRegion
-		key := appSettings.AWS.AccessKeyID
-		if len(key) > 8 {
-			status.AWS.KeyPreview = key[:4] + "..." + key[len(key)-4:]
-		} else {
-			status.AWS.KeyPreview = "****"
-		}
-	}
+	// AWS status — always IAM Role based
+	status.AWS.Configured = appSettings.AWS.AuthMethod == "iam_role" || appSettings.AWS.DefaultRegion != ""
+	status.AWS.AuthMethod = "iam_role"
+	status.AWS.DefaultRegion = appSettings.AWS.DefaultRegion
 
 	// GitHub status
 	if appSettings.GitHub.PAT != "" {

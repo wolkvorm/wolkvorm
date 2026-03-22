@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -20,20 +19,8 @@ func accountsHandler(w http.ResponseWriter, r *http.Request) {
 		if accounts == nil {
 			accounts = []AWSAccount{}
 		}
-		// Add key previews
 		for i := range accounts {
-			keyBytes, err := base64.StdEncoding.DecodeString(accounts[i].AccessKeyIDEnc)
-			if err == nil {
-				decrypted, err := decrypt(keyBytes)
-				if err == nil {
-					key := string(decrypted)
-					if len(key) > 8 {
-						accounts[i].KeyPreview = key[:4] + "..." + key[len(key)-4:]
-					} else {
-						accounts[i].KeyPreview = "****"
-					}
-				}
-			}
+			accounts[i].RoleARNPreview = maskRoleARN(accounts[i].RoleARN)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(accounts)
@@ -42,62 +29,54 @@ func accountsHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		var req struct {
-			Name            string `json:"name"`
-			AccessKeyID     string `json:"access_key_id"`
-			SecretAccessKey string `json:"secret_access_key"`
-			DefaultRegion   string `json:"default_region"`
+			Name          string `json:"name"`
+			RoleARN       string `json:"role_arn"`
+			ExternalID    string `json:"external_id"`
+			DefaultRegion string `json:"default_region"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "Invalid JSON", 400)
+			writeError(w, 400, "Invalid JSON")
 			return
 		}
-		if req.Name == "" || req.AccessKeyID == "" || req.SecretAccessKey == "" {
-			http.Error(w, "Name, access_key_id, and secret_access_key are required", 400)
+		if req.Name == "" || req.RoleARN == "" {
+			writeError(w, 400, "Name and role_arn are required")
+			return
+		}
+		if !strings.HasPrefix(req.RoleARN, "arn:aws:iam::") {
+			writeError(w, 400, "Invalid Role ARN format (expected arn:aws:iam::<account-id>:role/<role-name>)")
 			return
 		}
 		if req.DefaultRegion == "" {
 			req.DefaultRegion = "us-east-1"
 		}
 
-		// Encrypt credentials
-		encKey, err := encrypt([]byte(req.AccessKeyID))
-		if err != nil {
-			http.Error(w, "Encryption failed", 500)
-			return
-		}
-		encSecret, err := encrypt([]byte(req.SecretAccessKey))
-		if err != nil {
-			http.Error(w, "Encryption failed", 500)
-			return
-		}
-
 		acc := AWSAccount{
-			ID:                 fmt.Sprintf("acc-%d", time.Now().UnixNano()),
-			Name:               req.Name,
-			AccessKeyIDEnc:     base64.StdEncoding.EncodeToString(encKey),
-			SecretAccessKeyEnc: base64.StdEncoding.EncodeToString(encSecret),
-			DefaultRegion:      req.DefaultRegion,
-			CreatedAt:          time.Now().Format("2006-01-02 15:04:05"),
+			ID:            fmt.Sprintf("acc-%d", time.Now().UnixNano()),
+			Name:          req.Name,
+			AuthMethod:    "role",
+			RoleARN:       req.RoleARN,
+			ExternalID:    req.ExternalID,
+			DefaultRegion: req.DefaultRegion,
+			CreatedAt:     time.Now().Format("2006-01-02 15:04:05"),
 		}
 
-		// First account is default
 		existing := dbGetAWSAccounts()
 		if len(existing) == 0 {
 			acc.IsDefault = 1
 		}
 
 		if err := dbInsertAWSAccount(acc); err != nil {
-			http.Error(w, err.Error(), 500)
+			writeError(w, 500, err.Error())
 			return
 		}
 
-		logAudit("account_create", "aws_account", acc.ID, map[string]any{"name": req.Name}, r)
+		logAudit("account_create", "aws_account", acc.ID, map[string]any{"name": req.Name, "role_arn": maskRoleARN(req.RoleARN)}, r)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"status": "created", "id": acc.ID})
 		return
 	}
 
-	http.Error(w, "Method not allowed", 405)
+	writeError(w, 405, "Method not allowed")
 }
 
 func accountDetailHandler(w http.ResponseWriter, r *http.Request) {
@@ -111,7 +90,7 @@ func accountDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 	if len(parts) > 1 && parts[1] == "default" && r.Method == "POST" {
 		if err := dbSetDefaultAWSAccount(id); err != nil {
-			http.Error(w, err.Error(), 500)
+			writeError(w, 500, err.Error())
 			return
 		}
 		logAudit("account_set_default", "aws_account", id, nil, r)
@@ -120,52 +99,70 @@ func accountDetailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(parts) > 1 && parts[1] == "verify" && r.Method == "GET" {
+	if len(parts) > 1 && parts[1] == "verify" && r.Method == "POST" {
 		acc := dbGetAWSAccount(id)
 		if acc == nil {
-			http.Error(w, "Account not found", 404)
+			writeError(w, 404, "Account not found")
 			return
 		}
+		if acc.RoleARN == "" {
+			writeError(w, 400, "No Role ARN configured for this account")
+			return
+		}
+
+		accountID, err := verifyAccountRole(acc.RoleARN, acc.ExternalID, acc.DefaultRegion)
+		if err != nil {
+			writeError(w, 400, fmt.Sprintf("Role verification failed: %v", err))
+			return
+		}
+
+		// Save the discovered account ID
+		acc.AccountID = accountID
+		dbUpdateAWSAccount(*acc)
+
+		logAudit("account_verify", "aws_account", id, map[string]any{"aws_account_id": accountID}, r)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{"status": "ok", "account_id": acc.AccountID})
+		json.NewEncoder(w).Encode(map[string]any{
+			"status":     "verified",
+			"account_id": accountID,
+		})
 		return
 	}
 
 	if r.Method == "PUT" {
 		var req struct {
-			Name            string `json:"name"`
-			AccessKeyID     string `json:"access_key_id"`
-			SecretAccessKey string `json:"secret_access_key"`
-			DefaultRegion   string `json:"default_region"`
+			Name          string `json:"name"`
+			RoleARN       string `json:"role_arn"`
+			ExternalID    string `json:"external_id"`
+			DefaultRegion string `json:"default_region"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "Invalid JSON", 400)
+			writeError(w, 400, "Invalid JSON")
 			return
 		}
 
 		acc := dbGetAWSAccount(id)
 		if acc == nil {
-			http.Error(w, "Account not found", 404)
+			writeError(w, 404, "Account not found")
 			return
 		}
 
 		if req.Name != "" {
 			acc.Name = req.Name
 		}
+		if req.RoleARN != "" {
+			acc.RoleARN = req.RoleARN
+			acc.AccountID = ""
+		}
+		if req.ExternalID != "" {
+			acc.ExternalID = req.ExternalID
+		}
 		if req.DefaultRegion != "" {
 			acc.DefaultRegion = req.DefaultRegion
 		}
-		if req.AccessKeyID != "" {
-			encKey, _ := encrypt([]byte(req.AccessKeyID))
-			acc.AccessKeyIDEnc = base64.StdEncoding.EncodeToString(encKey)
-		}
-		if req.SecretAccessKey != "" {
-			encSecret, _ := encrypt([]byte(req.SecretAccessKey))
-			acc.SecretAccessKeyEnc = base64.StdEncoding.EncodeToString(encSecret)
-		}
 
 		if err := dbUpdateAWSAccount(*acc); err != nil {
-			http.Error(w, err.Error(), 500)
+			writeError(w, 500, err.Error())
 			return
 		}
 
@@ -177,7 +174,7 @@ func accountDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "DELETE" {
 		if err := dbDeleteAWSAccount(id); err != nil {
-			http.Error(w, err.Error(), 500)
+			writeError(w, 500, err.Error())
 			return
 		}
 		logAudit("account_delete", "aws_account", id, nil, r)
@@ -186,5 +183,25 @@ func accountDetailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Error(w, "Method not allowed", 405)
+	writeError(w, 405, "Method not allowed")
+}
+
+// maskRoleARN returns a masked version of a role ARN for display.
+func maskRoleARN(arn string) string {
+	if arn == "" {
+		return ""
+	}
+	// arn:aws:iam::123456789012:role/MyRole -> arn:aws:iam::1234...9012:role/MyRole
+	parts := strings.Split(arn, ":")
+	if len(parts) >= 5 {
+		acctID := parts[4]
+		if len(acctID) > 8 {
+			parts[4] = acctID[:4] + "..." + acctID[len(acctID)-4:]
+		}
+		return strings.Join(parts, ":")
+	}
+	if len(arn) > 20 {
+		return arn[:12] + "..." + arn[len(arn)-8:]
+	}
+	return arn
 }

@@ -118,8 +118,11 @@ func initDB() {
 	CREATE TABLE IF NOT EXISTS aws_accounts (
 		id TEXT PRIMARY KEY,
 		name TEXT NOT NULL,
-		access_key_id_enc TEXT NOT NULL,
-		secret_access_key_enc TEXT NOT NULL,
+		auth_method TEXT NOT NULL DEFAULT 'role',
+		role_arn TEXT DEFAULT '',
+		external_id TEXT DEFAULT '',
+		access_key_id_enc TEXT DEFAULT '',
+		secret_access_key_enc TEXT DEFAULT '',
 		default_region TEXT NOT NULL DEFAULT 'us-east-1',
 		account_id TEXT DEFAULT '',
 		is_default INTEGER NOT NULL DEFAULT 0,
@@ -208,6 +211,11 @@ func initDB() {
 	// This is done separately because ALTER TABLE ADD COLUMN IF NOT EXISTS is not supported by SQLite.
 	// Instead, we just try to add it and ignore the error if it already exists.
 	_, _ = db.Exec(`ALTER TABLE resources ADD COLUMN outputs_json TEXT DEFAULT '{}';`)
+
+	// Migrate aws_accounts table for IAM Role support
+	_, _ = db.Exec(`ALTER TABLE aws_accounts ADD COLUMN auth_method TEXT NOT NULL DEFAULT 'role';`)
+	_, _ = db.Exec(`ALTER TABLE aws_accounts ADD COLUMN role_arn TEXT DEFAULT '';`)
+	_, _ = db.Exec(`ALTER TABLE aws_accounts ADD COLUMN external_id TEXT DEFAULT '';`)
 
 	// Clean up stale "running" records from previous server sessions
 	cleanupStaleRecords()
@@ -659,25 +667,28 @@ func dbDeleteBudget(id string) error {
 // ========== AWS Accounts Functions ==========
 
 type AWSAccount struct {
-	ID                  string `db:"id" json:"id"`
-	Name                string `db:"name" json:"name"`
-	AccessKeyIDEnc      string `db:"access_key_id_enc" json:"-"`
-	SecretAccessKeyEnc  string `db:"secret_access_key_enc" json:"-"`
-	DefaultRegion       string `db:"default_region" json:"default_region"`
-	AccountID           string `db:"account_id" json:"account_id"`
-	IsDefault           int    `db:"is_default" json:"is_default"`
-	CreatedAt           string `db:"created_at" json:"created_at"`
+	ID                 string `db:"id" json:"id"`
+	Name               string `db:"name" json:"name"`
+	AuthMethod         string `db:"auth_method" json:"auth_method"`
+	RoleARN            string `db:"role_arn" json:"role_arn"`
+	ExternalID         string `db:"external_id" json:"external_id,omitempty"`
+	AccessKeyIDEnc     string `db:"access_key_id_enc" json:"-"`
+	SecretAccessKeyEnc string `db:"secret_access_key_enc" json:"-"`
+	DefaultRegion      string `db:"default_region" json:"default_region"`
+	AccountID          string `db:"account_id" json:"account_id"`
+	IsDefault          int    `db:"is_default" json:"is_default"`
+	CreatedAt          string `db:"created_at" json:"created_at"`
 	// Non-DB fields for API responses
-	KeyPreview string `db:"-" json:"key_preview,omitempty"`
+	RoleARNPreview string `db:"-" json:"role_arn_preview,omitempty"`
 }
 
 func dbInsertAWSAccount(acc AWSAccount) error {
 	if db == nil {
 		return fmt.Errorf("database not initialized")
 	}
-	_, err := db.Exec(`INSERT INTO aws_accounts (id, name, access_key_id_enc, secret_access_key_enc, default_region, account_id, is_default, created_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		acc.ID, acc.Name, acc.AccessKeyIDEnc, acc.SecretAccessKeyEnc, acc.DefaultRegion, acc.AccountID, acc.IsDefault, acc.CreatedAt)
+	_, err := db.Exec(`INSERT INTO aws_accounts (id, name, auth_method, role_arn, external_id, access_key_id_enc, secret_access_key_enc, default_region, account_id, is_default, created_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		acc.ID, acc.Name, acc.AuthMethod, acc.RoleARN, acc.ExternalID, acc.AccessKeyIDEnc, acc.SecretAccessKeyEnc, acc.DefaultRegion, acc.AccountID, acc.IsDefault, acc.CreatedAt)
 	return err
 }
 
@@ -706,8 +717,8 @@ func dbUpdateAWSAccount(acc AWSAccount) error {
 	if db == nil {
 		return fmt.Errorf("database not initialized")
 	}
-	_, err := db.Exec(`UPDATE aws_accounts SET name=?, access_key_id_enc=?, secret_access_key_enc=?, default_region=?, account_id=? WHERE id=?`,
-		acc.Name, acc.AccessKeyIDEnc, acc.SecretAccessKeyEnc, acc.DefaultRegion, acc.AccountID, acc.ID)
+	_, err := db.Exec(`UPDATE aws_accounts SET name=?, auth_method=?, role_arn=?, external_id=?, default_region=?, account_id=? WHERE id=?`,
+		acc.Name, acc.AuthMethod, acc.RoleARN, acc.ExternalID, acc.DefaultRegion, acc.AccountID, acc.ID)
 	return err
 }
 

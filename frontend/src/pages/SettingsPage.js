@@ -36,9 +36,6 @@ function SettingsPage() {
   const { theme } = useTheme();
   const styles = getStyles(theme);
   // AWS state
-  const [awsAuthMethod, setAwsAuthMethod] = useState("access_key"); // "access_key" or "iam_role"
-  const [awsKey, setAwsKey] = useState("");
-  const [awsSecret, setAwsSecret] = useState("");
   const [awsRegion, setAwsRegion] = useState("eu-central-1");
   const [awsStatus, setAwsStatus] = useState(null);
   const [awsSaving, setAwsSaving] = useState(false);
@@ -84,9 +81,10 @@ function SettingsPage() {
   // AWS Accounts
   const [accounts, setAccounts] = useState([]);
   const [newAccName, setNewAccName] = useState("");
-  const [newAccKey, setNewAccKey] = useState("");
-  const [newAccSecret, setNewAccSecret] = useState("");
+  const [newAccRoleARN, setNewAccRoleARN] = useState("");
+  const [newAccExternalID, setNewAccExternalID] = useState("");
   const [newAccRegion, setNewAccRegion] = useState("us-east-1");
+  const [verifyingAccount, setVerifyingAccount] = useState(null);
 
   // User Management state
   const [users, setUsers] = useState([]);
@@ -108,9 +106,6 @@ function SettingsPage() {
         setAwsStatus(data.aws);
         setGhStatus(data.github);
         setIcStatus(data.infracost);
-        if (data.aws?.auth_method) {
-          setAwsAuthMethod(data.aws.auth_method);
-        }
         if (data.aws?.default_region) {
           setAwsRegion(data.aws.default_region);
         }
@@ -165,23 +160,16 @@ function SettingsPage() {
     setAwsSaving(true);
     setAwsMsg(null);
     try {
-      const body = { auth_method: awsAuthMethod, default_region: awsRegion };
-      if (awsAuthMethod === "access_key") {
-        body.access_key_id = awsKey;
-        body.secret_access_key = awsSecret;
-      }
       const res = await authFetch(`${API}/api/settings/aws`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ default_region: awsRegion }),
       });
       if (!res.ok) {
         const text = await res.text();
         throw new Error(text);
       }
-      setAwsMsg({ type: "success", text: awsAuthMethod === "iam_role" ? "IAM Role configuration saved" : "AWS credentials saved successfully" });
-      setAwsKey("");
-      setAwsSecret("");
+      setAwsMsg({ type: "success", text: "AWS configuration saved (IAM Role)" });
       const statusRes = await authFetch(`${API}/api/settings/aws`);
       const statusData = await statusRes.json();
       setAwsStatus(statusData);
@@ -189,6 +177,24 @@ function SettingsPage() {
       setAwsMsg({ type: "error", text: err.message });
     }
     setAwsSaving(false);
+  };
+
+  const verifyAccount = async (accId) => {
+    setVerifyingAccount(accId);
+    try {
+      const res = await authFetch(`${API}/api/accounts/${accId}/verify`, { method: "POST" });
+      const data = await res.json();
+      if (data.error) {
+        alert("Verification failed: " + data.error);
+      } else {
+        alert("Verified! AWS Account ID: " + data.account_id);
+        const r = await authFetch(`${API}/api/accounts`);
+        setAccounts(await r.json());
+      }
+    } catch (err) {
+      alert("Verification failed: " + err.message);
+    }
+    setVerifyingAccount(null);
   };
 
   const saveGitHub = async () => {
@@ -290,7 +296,7 @@ function SettingsPage() {
         </p>
       </div>
 
-      {/* AWS Credentials */}
+      {/* AWS Configuration */}
       <div style={styles.section}>
         <div style={styles.sectionHeader}>
           <div style={{ ...styles.sectionIcon, background: "rgba(245,158,11,0.1)" }}>
@@ -299,94 +305,37 @@ function SettingsPage() {
             </svg>
           </div>
           <div>
-            <h2 style={styles.sectionTitle}>AWS Credentials</h2>
+            <h2 style={styles.sectionTitle}>AWS Configuration</h2>
             <p style={styles.sectionDesc}>
-              Configure AWS authentication for API operations
+              IAM Role authentication via EC2 instance profile
             </p>
           </div>
           {awsStatus?.configured && (
             <div style={styles.badge}>
               <span style={styles.badgeDot} />
-              Connected ({awsStatus.auth_method === "iam_role" ? "IAM Role" : "Access Key"})
+              IAM Role Active
             </div>
           )}
         </div>
 
         {awsStatus?.configured && (
           <div style={styles.currentConfig}>
-            {awsStatus.auth_method === "iam_role" ? (
-              <div style={styles.configItem}>
-                <span style={styles.configLabel}>Auth Method</span>
-                <span style={styles.configValue}>IAM Role (EC2 Instance Profile)</span>
-              </div>
-            ) : (
-              <div style={styles.configItem}>
-                <span style={styles.configLabel}>Access Key</span>
-                <span style={styles.configValue}>{awsStatus.key_preview}</span>
-              </div>
-            )}
             <div style={styles.configItem}>
-              <span style={styles.configLabel}>Region</span>
+              <span style={styles.configLabel}>Auth Method</span>
+              <span style={styles.configValue}>IAM Role (EC2 Instance Profile)</span>
+            </div>
+            <div style={styles.configItem}>
+              <span style={styles.configLabel}>Default Region</span>
               <span style={styles.configValue}>{awsStatus.default_region}</span>
             </div>
           </div>
         )}
 
-        {/* Auth Method Toggle */}
-        <div style={styles.toggleRow}>
-          <button
-            style={{
-              ...styles.toggleBtn,
-              ...(awsAuthMethod === "access_key" ? styles.toggleActive : {}),
-            }}
-            onClick={() => setAwsAuthMethod("access_key")}
-          >
-            Access Key
-          </button>
-          <button
-            style={{
-              ...styles.toggleBtn,
-              ...(awsAuthMethod === "iam_role" ? styles.toggleActive : {}),
-            }}
-            onClick={() => setAwsAuthMethod("iam_role")}
-          >
-            IAM Role (EC2)
-          </button>
-        </div>
-
         <div style={styles.form}>
-          {awsAuthMethod === "access_key" ? (
-            <>
-              <div style={styles.fieldRow}>
-                <div style={styles.field}>
-                  <label style={styles.label}>AWS Access Key ID</label>
-                  <input
-                    type="text"
-                    style={styles.input}
-                    placeholder="AKIAIOSFODNN7EXAMPLE"
-                    value={awsKey}
-                    onChange={(e) => setAwsKey(e.target.value)}
-                  />
-                </div>
-                <div style={styles.field}>
-                  <label style={styles.label}>AWS Secret Access Key</label>
-                  <input
-                    type="password"
-                    style={styles.input}
-                    placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-                    value={awsSecret}
-                    onChange={(e) => setAwsSecret(e.target.value)}
-                  />
-                </div>
-              </div>
-            </>
-          ) : (
-            <div style={styles.infoBoxSmall}>
-              <strong>IAM Role Authentication</strong><br />
-              When running on an EC2 instance, Wolkvorm will automatically use the attached IAM Role for AWS operations. No access keys needed.<br /><br />
-              <strong>Setup:</strong> Attach an IAM Role with the necessary permissions to your EC2 instance via the AWS Console &rarr; EC2 &rarr; Actions &rarr; Security &rarr; Modify IAM Role.
-            </div>
-          )}
+          <div style={styles.infoBoxSmall}>
+            Wolkvorm uses the EC2 instance&apos;s attached IAM Role for AWS operations. No static access keys are stored.
+            To configure, attach an IAM Role to your EC2 instance via AWS Console &rarr; EC2 &rarr; Actions &rarr; Security &rarr; Modify IAM Role.
+          </div>
 
           <div style={styles.field}>
             <label style={styles.label}>Default Region</label>
@@ -412,7 +361,7 @@ function SettingsPage() {
             <div
               style={{
                 ...styles.message,
-                background: awsMsg.type === "success" ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
+                background: awsMsg.type === "success" ? `${theme.colors.success}18` : `${theme.colors.danger}18`,
                 borderColor: awsMsg.type === "success" ? theme.colors.success : theme.colors.danger,
                 color: awsMsg.type === "success" ? theme.colors.success : theme.colors.danger,
               }}
@@ -422,11 +371,11 @@ function SettingsPage() {
           )}
 
           <button
-            style={{ ...styles.saveBtn, opacity: awsSaving || (awsAuthMethod === "access_key" && !awsKey && !awsSecret) ? 0.5 : 1 }}
+            style={{ ...styles.saveBtn, opacity: awsSaving ? 0.5 : 1 }}
             onClick={saveAWS}
-            disabled={awsSaving || (awsAuthMethod === "access_key" && !awsKey && !awsSecret)}
+            disabled={awsSaving}
           >
-            {awsSaving ? "Saving..." : awsStatus?.configured ? "Update AWS Configuration" : "Save AWS Configuration"}
+            {awsSaving ? "Saving..." : "Save AWS Configuration"}
           </button>
         </div>
       </div>
@@ -919,61 +868,102 @@ function SettingsPage() {
           </div>
           <div>
             <h2 style={styles.sectionTitle}>AWS Accounts</h2>
-            <p style={styles.sectionDesc}>Manage multiple AWS accounts</p>
+            <p style={styles.sectionDesc}>Connect multiple AWS accounts via IAM Role (AssumeRole)</p>
           </div>
         </div>
         <div style={styles.form}>
+          <div style={styles.infoBoxSmall}>
+            <strong>How to connect an AWS account:</strong><br />
+            1. In the target AWS account, go to IAM &rarr; Roles &rarr; Create Role<br />
+            2. Select &quot;Another AWS account&quot; and enter the Wolkvorm EC2 account ID<br />
+            3. Optionally set an External ID for extra security<br />
+            4. Attach required permissions (e.g. AdministratorAccess or custom policy)<br />
+            5. Copy the Role ARN and paste it below
+          </div>
+
           {accounts.length > 0 && (
             <div style={{ marginBottom: 12 }}>
               {accounts.map(a => (
-                <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: theme.colors.bg, borderRadius: theme.radius.sm, marginBottom: 4, borderLeft: a.is_default ? `3px solid ${theme.colors.success}` : "3px solid transparent" }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: theme.colors.text }}>{a.name} {a.is_default ? "(default)" : ""}</span>
-                  <span style={{ fontSize: 11, color: theme.colors.textMuted }}>{a.default_region}</span>
-                  <span style={{ fontSize: 11, fontFamily: theme.fonts.mono, color: theme.colors.textMuted }}>{a.key_preview}</span>
-                  <div style={{ display: "flex", gap: 4 }}>
-                    {!a.is_default && <button style={{ padding: "4px 10px", borderRadius: 4, border: `1px solid ${theme.colors.border}`, background: "transparent", color: theme.colors.text, fontSize: 11, cursor: "pointer" }} onClick={async () => {
-                      await authFetch(`${API}/api/accounts/${a.id}/default`, { method: "POST" });
-                      const r = await authFetch(`${API}/api/accounts`); setAccounts(await r.json());
-                    }}>Set Default</button>}
-                    <button style={{ padding: "4px 10px", borderRadius: 4, border: "none", background: "rgba(239,68,68,0.1)", color: theme.colors.danger, fontSize: 11, cursor: "pointer" }} onClick={async () => {
-                      await authFetch(`${API}/api/accounts/${a.id}`, { method: "DELETE" });
-                      const r = await authFetch(`${API}/api/accounts`); setAccounts(await r.json());
-                    }}>Remove</button>
+                <div key={a.id} style={{
+                  padding: "12px 14px",
+                  background: theme.colors.bg,
+                  borderRadius: theme.radius.sm,
+                  marginBottom: 6,
+                  borderLeft: a.is_default ? `3px solid ${theme.colors.success}` : "3px solid transparent",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <div>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: theme.colors.text }}>{a.name}</span>
+                      {a.is_default ? <span style={{ fontSize: 10, color: theme.colors.success, marginLeft: 8, fontWeight: 600 }}>DEFAULT</span> : null}
+                    </div>
+                    <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                      {a.account_id ? (
+                        <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 10, background: `${theme.colors.success}22`, color: theme.colors.success, fontWeight: 600 }}>Verified</span>
+                      ) : (
+                        <button
+                          style={{ padding: "3px 10px", borderRadius: 4, border: `1px solid ${theme.colors.primary}`, background: "transparent", color: theme.colors.primary, fontSize: 11, cursor: "pointer", opacity: verifyingAccount === a.id ? 0.5 : 1 }}
+                          onClick={() => verifyAccount(a.id)}
+                          disabled={verifyingAccount === a.id}
+                        >
+                          {verifyingAccount === a.id ? "Verifying..." : "Verify"}
+                        </button>
+                      )}
+                      {!a.is_default && <button style={{ padding: "3px 10px", borderRadius: 4, border: `1px solid ${theme.colors.border}`, background: "transparent", color: theme.colors.text, fontSize: 11, cursor: "pointer" }} onClick={async () => {
+                        await authFetch(`${API}/api/accounts/${a.id}/default`, { method: "POST" });
+                        const r = await authFetch(`${API}/api/accounts`); setAccounts(await r.json());
+                      }}>Set Default</button>}
+                      <button style={{ padding: "3px 10px", borderRadius: 4, border: "none", background: `${theme.colors.danger}18`, color: theme.colors.danger, fontSize: 11, cursor: "pointer" }} onClick={async () => {
+                        await authFetch(`${API}/api/accounts/${a.id}`, { method: "DELETE" });
+                        const r = await authFetch(`${API}/api/accounts`); setAccounts(await r.json());
+                      }}>Remove</button>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 16, fontSize: 12, color: theme.colors.textMuted }}>
+                    <span>Role: <span style={{ fontFamily: theme.fonts.mono, fontSize: 11 }}>{a.role_arn_preview || a.role_arn}</span></span>
+                    <span>Region: {a.default_region}</span>
+                    {a.account_id && <span>Account: {a.account_id}</span>}
                   </div>
                 </div>
               ))}
             </div>
           )}
+
+          <div style={styles.field}>
+            <label style={styles.label}>Account Name</label>
+            <input style={styles.input} placeholder="e.g. Production, Staging" value={newAccName} onChange={e => setNewAccName(e.target.value)} />
+          </div>
+          <div style={styles.field}>
+            <label style={styles.label}>Role ARN</label>
+            <input style={styles.input} placeholder="arn:aws:iam::123456789012:role/WolkvormRole" value={newAccRoleARN} onChange={e => setNewAccRoleARN(e.target.value)} />
+          </div>
           <div style={styles.fieldRow}>
             <div style={styles.field}>
-              <label style={styles.label}>Account Name</label>
-              <input style={styles.input} placeholder="e.g. Production" value={newAccName} onChange={e => setNewAccName(e.target.value)} />
+              <label style={styles.label}>External ID (optional)</label>
+              <input style={styles.input} placeholder="Optional security identifier" value={newAccExternalID} onChange={e => setNewAccExternalID(e.target.value)} />
             </div>
             <div style={styles.field}>
-              <label style={styles.label}>Region</label>
+              <label style={styles.label}>Default Region</label>
               <select style={styles.input} value={newAccRegion} onChange={e => setNewAccRegion(e.target.value)}>
                 <option value="us-east-1">us-east-1</option>
+                <option value="us-east-2">us-east-2</option>
+                <option value="us-west-1">us-west-1</option>
+                <option value="us-west-2">us-west-2</option>
                 <option value="eu-central-1">eu-central-1</option>
                 <option value="eu-west-1">eu-west-1</option>
+                <option value="eu-west-2">eu-west-2</option>
+                <option value="eu-north-1">eu-north-1</option>
                 <option value="ap-northeast-1">ap-northeast-1</option>
+                <option value="ap-southeast-1">ap-southeast-1</option>
               </select>
             </div>
           </div>
-          <div style={styles.fieldRow}>
-            <div style={styles.field}>
-              <label style={styles.label}>Access Key ID</label>
-              <input style={styles.input} placeholder="AKIA..." value={newAccKey} onChange={e => setNewAccKey(e.target.value)} />
-            </div>
-            <div style={styles.field}>
-              <label style={styles.label}>Secret Access Key</label>
-              <input type="password" style={styles.input} placeholder="wJalr..." value={newAccSecret} onChange={e => setNewAccSecret(e.target.value)} />
-            </div>
-          </div>
-          <button style={{ ...styles.saveBtn, background: "#f59e0b" }} disabled={!newAccName || !newAccKey || !newAccSecret} onClick={async () => {
-            await authFetch(`${API}/api/accounts`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: newAccName, access_key_id: newAccKey, secret_access_key: newAccSecret, default_region: newAccRegion }) });
-            setNewAccName(""); setNewAccKey(""); setNewAccSecret("");
+          <button style={{ ...styles.saveBtn, background: "#f59e0b" }} disabled={!newAccName || !newAccRoleARN} onClick={async () => {
+            const res = await authFetch(`${API}/api/accounts`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: newAccName, role_arn: newAccRoleARN, external_id: newAccExternalID, default_region: newAccRegion }) });
+            const data = await res.json();
+            if (data.error) { alert(data.error); return; }
+            setNewAccName(""); setNewAccRoleARN(""); setNewAccExternalID("");
             const r = await authFetch(`${API}/api/accounts`); setAccounts(await r.json());
-          }}>Add AWS Account</button>
+          }}>Connect AWS Account</button>
         </div>
       </div>
 

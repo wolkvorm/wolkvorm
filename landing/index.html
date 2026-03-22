@@ -128,7 +128,11 @@
             -webkit-text-fill-color: initial;
         }
 
-        .logo span {
+        .logo .logo-word {
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo .logo-word span {
             -webkit-text-fill-color: var(--text-primary);
         }
 
@@ -1323,7 +1327,7 @@
     <!-- Navigation -->
     <nav id="navbar">
         <div class="nav-inner">
-            <div class="logo"><img src="wolkvorm-logo.png?v=1" alt="Wolkvorm" style="width:28px;height:28px;border-radius:6px;">Wolk<span>vorm</span></div>
+            <div class="logo"><img src="wolkvorm-logo.png?v=1" alt="Wolkvorm" style="width:28px;height:28px;border-radius:6px;"><span class="logo-word">Wolk<span>vorm</span></span></div>
             <ul class="nav-links">
                 <li><a href="#features">Features</a></li>
                 <li><a href="#services">Services</a></li>
@@ -1341,7 +1345,7 @@
         <div class="container">
             <div class="hero-grid">
                 <div class="hero-content slide-in-left">
-                    <div class="hero-badge">Open Source & Free</div>
+                    <div class="hero-badge">Open Source & Free &middot; Beta</div>
                     <h1>
                         Shape Your<br>
                         <span class="highlight">Cloud Infrastructure</span>
@@ -2072,7 +2076,7 @@
     <!-- Footer -->
     <footer>
         <div class="footer-inner">
-            <div class="logo" style="font-size: 1.2rem;">Wolk<span>vorm</span></div>
+            <div class="logo" style="font-size: 1.2rem;"><span class="logo-word">Wolk<span>vorm</span></span></div>
             <div class="footer-links">
                 <a href="https://github.com/wolkvorm" target="_blank">GitHub</a>
                 <a href="#docs">Documentation</a>

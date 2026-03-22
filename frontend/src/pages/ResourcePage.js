@@ -605,7 +605,7 @@ function getStyles(theme) {
       padding: "8px 0",
       textAlign: "center",
       borderRadius: theme.radius.sm,
-      background: theme.colors.surface,
+      background: theme.colors.input,
       border: `1px solid ${theme.colors.border}`,
       color: theme.colors.text,
       fontSize: 13,

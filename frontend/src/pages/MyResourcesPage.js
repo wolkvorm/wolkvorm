@@ -151,7 +151,7 @@ function MyResourcesPage() {
     setStateInitializing(false);
   };
 
-  const activeResources = resources.filter((r) => r.status === "active" || r.status === "unknown" || r.status === "failed");
+  const activeResources = resources.filter((r) => r.status === "active" || r.status === "unknown" || r.status === "failed" || r.status === "imported");
 
   // Get unique values for filters
   const schemas = [...new Set(resources.map((r) => r.schema_id))];
@@ -309,8 +309,10 @@ function MyResourcesPage() {
                 <div style={{
                   ...styles.statusBadge,
                   background: resource.status === "active" ? `${theme.colors.success}22` :
+                    resource.status === "imported" ? `${theme.colors.primary}22` :
                     resource.status === "unknown" ? `${theme.colors.warning}22` : `${theme.colors.danger}22`,
                   color: resource.status === "active" ? theme.colors.success :
+                    resource.status === "imported" ? theme.colors.primary :
                     resource.status === "unknown" ? theme.colors.warning : theme.colors.danger,
                 }}>
                   {resource.status === "unknown" ? "unverified" : resource.status}
@@ -683,7 +685,7 @@ function getStyles(theme) {
       marginTop: 8,
       textAlign: "center",
       borderRadius: theme.radius.sm,
-      background: theme.colors.surface,
+      background: theme.colors.input,
       border: `1px solid ${theme.colors.border}`,
       color: theme.colors.text,
       fontSize: 13,

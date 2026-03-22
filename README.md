@@ -1,4 +1,6 @@
-# Wolkvorm
+# Wolkvorm `BETA`
+
+> **Note:** Wolkvorm is currently in **beta**. Features may change and bugs are expected. Feedback and contributions are welcome.
 
 **Shape Your Cloud Infrastructure** — Deploy AWS resources through visual forms. No HCL knowledge required. Wolkvorm generates Terraform configurations, manages state, and runs plan/apply in sandboxed containers.
 

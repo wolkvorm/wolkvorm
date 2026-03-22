@@ -34,44 +34,34 @@ func awsSettingsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "POST" {
-		var creds AWSCredentials
-		if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
+		var body struct {
+			DefaultRegion string `json:"default_region"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
 			return
 		}
 
-		if creds.DefaultRegion == "" {
-			creds.DefaultRegion = "eu-central-1"
+		if body.DefaultRegion == "" {
+			body.DefaultRegion = "eu-central-1"
 		}
 
-		if creds.AuthMethod == "iam_role" {
-			// IAM Role mode: no keys needed, just save region and method
-			creds.AccessKeyID = ""
-			creds.SecretAccessKey = ""
-		} else {
-			// Access Key mode: keys required
-			creds.AuthMethod = "access_key"
-			if creds.AccessKeyID == "" || creds.SecretAccessKey == "" {
-				http.Error(w, "Access Key ID and Secret Access Key are required", http.StatusBadRequest)
-				return
-			}
+		creds := AWSCredentials{
+			AuthMethod:    "iam_role",
+			DefaultRegion: body.DefaultRegion,
 		}
 
 		if err := SetAWSCredentials(creds); err != nil {
-			http.Error(w, "Failed to save credentials", http.StatusInternalServerError)
+			http.Error(w, "Failed to save configuration", http.StatusInternalServerError)
 			return
 		}
 
-		resp := map[string]any{
-			"status":      "saved",
-			"auth_method": creds.AuthMethod,
-		}
-		if creds.AuthMethod == "access_key" {
-			resp["preview"] = maskSecret(creds.AccessKeyID)
-		}
-
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		json.NewEncoder(w).Encode(map[string]any{
+			"status":      "saved",
+			"auth_method": "iam_role",
+			"region":      body.DefaultRegion,
+		})
 		return
 	}
 

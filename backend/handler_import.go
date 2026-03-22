@@ -27,7 +27,7 @@ func importScanHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", 405)
+		writeError(w, 405, "Method not allowed")
 		return
 	}
 
@@ -36,19 +36,22 @@ func importScanHandler(w http.ResponseWriter, r *http.Request) {
 		Region       string `json:"region"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON", 400)
+		writeError(w, 400, "Invalid JSON")
 		return
 	}
 
 	creds := GetAWSCredentials()
-	if creds.AccessKeyID == "" {
-		http.Error(w, "AWS credentials not configured", 400)
+	if creds.AccessKeyID == "" && creds.AuthMethod != "iam_role" {
+		writeError(w, 400, "AWS credentials not configured")
 		return
 	}
 
 	region := req.Region
 	if region == "" {
 		region = creds.DefaultRegion
+	}
+	if region == "" {
+		region = "us-east-1"
 	}
 
 	var resources []DiscoveredResource
@@ -64,12 +67,12 @@ func importScanHandler(w http.ResponseWriter, r *http.Request) {
 	case "security-group":
 		resources, scanErr = scanSecurityGroups(region)
 	default:
-		http.Error(w, "Unsupported resource type: "+req.ResourceType, 400)
+		writeError(w, 400, "Unsupported resource type: "+req.ResourceType)
 		return
 	}
 
 	if scanErr != nil {
-		http.Error(w, "Scan failed: "+scanErr.Error(), 500)
+		writeError(w, 500, "Scan failed: "+scanErr.Error())
 		return
 	}
 
@@ -107,7 +110,7 @@ func importExecuteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", 405)
+		writeError(w, 405, "Method not allowed")
 		return
 	}
 
@@ -116,7 +119,7 @@ func importExecuteHandler(w http.ResponseWriter, r *http.Request) {
 		Env       string               `json:"env"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON", 400)
+		writeError(w, 400, "Invalid JSON")
 		return
 	}
 

@@ -24,7 +24,7 @@ type StateBackendInfo struct {
 	Ready     bool   `json:"ready"`
 }
 
-// getAWSConfig creates an AWS SDK config from stored credentials.
+// getAWSConfig creates an AWS SDK config using the default credential chain (EC2 instance profile).
 func getAWSConfig(region string) (aws.Config, error) {
 	creds := GetAWSCredentials()
 
@@ -35,35 +35,119 @@ func getAWSConfig(region string) (aws.Config, error) {
 		region = "us-east-1"
 	}
 
-	if creds.AuthMethod == "iam_role" {
-		// IAM Role mode: use default credential chain (EC2 instance profile, env vars, etc.)
-		cfg, err := config.LoadDefaultConfig(context.Background(),
-			config.WithRegion(region),
-		)
-		if err != nil {
-			return aws.Config{}, fmt.Errorf("failed to load AWS config (IAM Role): %w", err)
-		}
-		return cfg, nil
-	}
-
-	// Access Key mode: use explicit credentials
-	if creds.AccessKeyID == "" {
-		return aws.Config{}, fmt.Errorf("AWS credentials not configured")
-	}
-
 	cfg, err := config.LoadDefaultConfig(context.Background(),
 		config.WithRegion(region),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-			creds.AccessKeyID,
-			creds.SecretAccessKey,
-			"",
-		)),
 	)
 	if err != nil {
 		return aws.Config{}, fmt.Errorf("failed to load AWS config: %w", err)
 	}
-
 	return cfg, nil
+}
+
+// getAWSConfigForAccount creates an AWS SDK config by assuming a role in the target account.
+func getAWSConfigForAccount(accountID string, region string) (aws.Config, error) {
+	acc := dbGetAWSAccount(accountID)
+	if acc == nil {
+		return aws.Config{}, fmt.Errorf("AWS account not found: %s", accountID)
+	}
+
+	if region == "" {
+		region = acc.DefaultRegion
+	}
+	if region == "" {
+		region = "us-east-1"
+	}
+
+	if acc.RoleARN == "" {
+		return aws.Config{}, fmt.Errorf("no Role ARN configured for account: %s", acc.Name)
+	}
+
+	// Load base config (EC2 instance profile)
+	baseCfg, err := config.LoadDefaultConfig(context.Background(),
+		config.WithRegion(region),
+	)
+	if err != nil {
+		return aws.Config{}, fmt.Errorf("failed to load base AWS config: %w", err)
+	}
+
+	// Assume the target role
+	stsClient := sts.NewFromConfig(baseCfg)
+	assumeInput := &sts.AssumeRoleInput{
+		RoleArn:         aws.String(acc.RoleARN),
+		RoleSessionName: aws.String("wolkvorm-session"),
+	}
+	if acc.ExternalID != "" {
+		assumeInput.ExternalId = aws.String(acc.ExternalID)
+	}
+
+	result, err := stsClient.AssumeRole(context.Background(), assumeInput)
+	if err != nil {
+		return aws.Config{}, fmt.Errorf("failed to assume role %s: %w", acc.RoleARN, err)
+	}
+
+	// Create config with assumed role credentials
+	assumedCfg, err := config.LoadDefaultConfig(context.Background(),
+		config.WithRegion(region),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
+			*result.Credentials.AccessKeyId,
+			*result.Credentials.SecretAccessKey,
+			*result.Credentials.SessionToken,
+		)),
+	)
+	if err != nil {
+		return aws.Config{}, fmt.Errorf("failed to create config with assumed role: %w", err)
+	}
+
+	return assumedCfg, nil
+}
+
+// verifyAccountRole assumes a role and calls GetCallerIdentity to verify it works.
+func verifyAccountRole(roleARN, externalID, region string) (string, error) {
+	if region == "" {
+		region = "us-east-1"
+	}
+
+	baseCfg, err := config.LoadDefaultConfig(context.Background(),
+		config.WithRegion(region),
+	)
+	if err != nil {
+		return "", fmt.Errorf("failed to load base AWS config: %w", err)
+	}
+
+	stsClient := sts.NewFromConfig(baseCfg)
+	assumeInput := &sts.AssumeRoleInput{
+		RoleArn:         aws.String(roleARN),
+		RoleSessionName: aws.String("wolkvorm-verify"),
+	}
+	if externalID != "" {
+		assumeInput.ExternalId = aws.String(externalID)
+	}
+
+	result, err := stsClient.AssumeRole(context.Background(), assumeInput)
+	if err != nil {
+		return "", fmt.Errorf("failed to assume role: %w", err)
+	}
+
+	// Use assumed credentials to verify identity
+	assumedCfg, err := config.LoadDefaultConfig(context.Background(),
+		config.WithRegion(region),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
+			*result.Credentials.AccessKeyId,
+			*result.Credentials.SecretAccessKey,
+			*result.Credentials.SessionToken,
+		)),
+	)
+	if err != nil {
+		return "", err
+	}
+
+	verifySTS := sts.NewFromConfig(assumedCfg)
+	identity, err := verifySTS.GetCallerIdentity(context.Background(), &sts.GetCallerIdentityInput{})
+	if err != nil {
+		return "", fmt.Errorf("assumed role but failed to verify identity: %w", err)
+	}
+
+	return *identity.Account, nil
 }
 
 // getAccountID retrieves the AWS account ID using STS.
