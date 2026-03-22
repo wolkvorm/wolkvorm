@@ -65,16 +65,15 @@ func wsRunHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Determine terraform command
 	var tgCommand string
 	switch req.Action {
 	case "apply":
-		tgCommand = "terraform apply -auto-approve"
+		tgCommand = iacCommand("terraform apply -auto-approve")
 	case "destroy":
-		tgCommand = "terraform destroy -auto-approve"
+		tgCommand = iacCommand("terraform destroy -auto-approve")
 	default:
 		req.Action = "plan"
-		tgCommand = "terraform plan"
+		tgCommand = iacCommand("terraform plan")
 	}
 
 	// Check if approval is required for apply/destroy
@@ -187,7 +186,7 @@ func wsRunHandler(w http.ResponseWriter, r *http.Request) {
 			Name:       jobName,
 			Image:      getRunnerImage(),
 			Command:    []string{"/bin/sh"},
-			Args:       []string{"-c", "cd /workspace && terraform init && " + tgCommand},
+			Args:       []string{"-c", "cd /workspace && " + iacBinary() + " init && " + tgCommand},
 			EnvVars:    envVars,
 			HCLContent: hcl,
 		}, logCh)
@@ -209,7 +208,7 @@ func wsRunHandler(w http.ResponseWriter, r *http.Request) {
 			"-e", "AWS_DEFAULT_REGION="+req.Region,
 			"-v", runDir+":/workspace",
 			"wolkvorm-runner",
-			"-c", "cd /workspace && terraform init && "+tgCommand,
+			"-c", "cd /workspace && " + iacBinary() + " init && "+tgCommand,
 		)
 		cmd := exec.Command("docker", args...)
 

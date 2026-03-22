@@ -1,0 +1,18 @@
+apiVersion: v2
+name: wolkvorm
+description: Visual infrastructure management platform powered by Terraform/OpenTofu
+type: application
+version: 0.1.0
+appVersion: "0.1.0-beta"
+keywords:
+  - terraform
+  - opentofu
+  - infrastructure
+  - cloud
+  - aws
+maintainers:
+  - name: Ismail Ensar Kol
+    url: https://github.com/ensarkol
+home: https://wolkvorm.com
+sources:
+  - https://github.com/ensarkol/wolkvorm

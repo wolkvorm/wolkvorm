@@ -161,7 +161,7 @@ func runTerragrunt(req PlanRequest, action string, tgCommand string) (string, st
 			Name:       jobName,
 			Image:      getRunnerImage(),
 			Command:    []string{"/bin/sh"},
-			Args:       []string{"-c", "cd /workspace && terraform init && " + tgCommand},
+			Args:       []string{"-c", "cd /workspace && " + iacBinary() + " init && " + tgCommand},
 			EnvVars:    envVars,
 			HCLContent: hcl,
 		})
@@ -178,7 +178,7 @@ func runTerragrunt(req PlanRequest, action string, tgCommand string) (string, st
 			"-e", "AWS_DEFAULT_REGION="+req.Region,
 			"-v", runDir+":/workspace",
 			"wolkvorm-runner",
-			"-c", "cd /workspace && terraform init && "+tgCommand,
+			"-c", "cd /workspace && " + iacBinary() + " init && "+tgCommand,
 		)
 		cmd := exec.Command("docker", args...)
 		output, err = cmd.CombinedOutput()
@@ -400,22 +400,16 @@ func terragruntHandler(w http.ResponseWriter, r *http.Request, action string, tg
 	})
 }
 
-// planHandler runs terraform plan.
-// POST /api/plan
 func planHandler(w http.ResponseWriter, r *http.Request) {
-	terragruntHandler(w, r, "plan", "terraform plan")
+	terragruntHandler(w, r, "plan", iacCommand("terraform plan"))
 }
 
-// applyHandler runs terraform apply.
-// POST /api/apply
 func applyHandler(w http.ResponseWriter, r *http.Request) {
-	terragruntHandler(w, r, "apply", "terraform apply -auto-approve")
+	terragruntHandler(w, r, "apply", iacCommand("terraform apply -auto-approve"))
 }
 
-// destroyHandler runs terraform destroy.
-// POST /api/destroy
 func destroyHandler(w http.ResponseWriter, r *http.Request) {
-	terragruntHandler(w, r, "destroy", "terraform destroy -auto-approve")
+	terragruntHandler(w, r, "destroy", iacCommand("terraform destroy -auto-approve"))
 }
 
 // logsHandler returns the latest logs.

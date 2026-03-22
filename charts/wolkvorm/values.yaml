@@ -1,0 +1,73 @@
+replicaCount: 1
+
+image:
+  backend:
+    repository: ghcr.io/ensarkol/wolkvorm-backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  frontend:
+    repository: ghcr.io/ensarkol/wolkvorm-frontend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  runner:
+    repository: ghcr.io/ensarkol/wolkvorm-runner
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+backend:
+  port: 8080
+  env:
+    EXECUTION_MODE: "kubernetes"
+    IAC_ENGINE: "terraform"
+    SCHEMAS_DIR: "/schemas"
+    WOLKVORM_DATA_DIR: "/app/data"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+frontend:
+  port: 80
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 1Gi
+
+service:
+  type: ClusterIP
+  backendPort: 8080
+  frontendPort: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: wolkvorm.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+rbac:
+  create: true

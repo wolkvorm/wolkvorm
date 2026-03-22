@@ -58,6 +58,7 @@ type SettingsStatus struct {
 	GitHub    GitHubSettingsStatus `json:"github"`
 	Infracost InfracostStatus      `json:"infracost"`
 	State     StateBackendStatus   `json:"state"`
+	IaCEngine string               `json:"iac_engine"`
 }
 
 type StateBackendStatus struct {
@@ -254,7 +255,9 @@ func GetSettingsStatus() SettingsStatus {
 	settingsMu.RLock()
 	defer settingsMu.RUnlock()
 
-	status := SettingsStatus{}
+	status := SettingsStatus{
+		IaCEngine: iacBinary(),
+	}
 
 	// AWS status — always IAM Role based
 	status.AWS.Configured = appSettings.AWS.AuthMethod == "iam_role" || appSettings.AWS.DefaultRegion != ""
@@ -367,4 +370,25 @@ func maskSecret(s string) string {
 		return "****"
 	}
 	return s[:4] + "..." + s[len(s)-4:]
+}
+
+// iacBinary returns the IaC binary name based on IAC_ENGINE env var.
+// Supported values: "terraform" (default), "tofu".
+func iacBinary() string {
+	if e := os.Getenv("IAC_ENGINE"); e == "tofu" {
+		return "tofu"
+	}
+	return "terraform"
+}
+
+// iacCommand replaces "terraform" prefix in a command string with the configured engine.
+func iacCommand(cmd string) string {
+	bin := iacBinary()
+	if bin == "terraform" {
+		return cmd
+	}
+	if len(cmd) >= 9 && cmd[:9] == "terraform" {
+		return bin + cmd[9:]
+	}
+	return cmd
 }

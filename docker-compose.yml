@@ -16,6 +16,7 @@ services:
       - EXECUTION_MODE=docker
       - SCHEMAS_DIR=/schemas
       - WOLKVORM_DATA_DIR=/app/data
+      - IAC_ENGINE=${IAC_ENGINE:-terraform}
     depends_on:
       runner:
         condition: service_completed_successfully

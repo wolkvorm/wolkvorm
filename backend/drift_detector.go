@@ -53,7 +53,7 @@ func RunDriftCheck(resource *ManagedResource) DriftCheck {
 	opts := HCLOptions{Region: resource.Region, StateKey: resource.StateKey}
 	hcl := GenerateHCLWithOptions(schema, resource.Inputs, resource.Env, opts)
 
-	tgCmd := "cd /workspace && terraform init -no-color 2>&1 && terraform plan -no-color -detailed-exitcode 2>&1"
+	tgCmd := "cd /workspace && " + iacBinary() + " init -no-color 2>&1 && " + iacBinary() + " plan -no-color -detailed-exitcode 2>&1"
 	envVars := map[string]string{
 		"AWS_DEFAULT_REGION": resource.Region,
 	}
