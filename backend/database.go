@@ -415,7 +415,7 @@ func dbUpdateResource(id string, inputs map[string]any, status string, lastApply
 		return fmt.Errorf("database not initialized")
 	}
 	inputsJSON, _ := json.Marshal(inputs)
-	now := fmt.Sprintf("%s", time.Now().Format("2006-01-02 15:04:05"))
+	now := time.Now().Format("2006-01-02 15:04:05")
 	_, err := db.Exec(`UPDATE resources SET inputs_json=?, status=?, updated_at=?, last_apply_id=? WHERE id=?`,
 		string(inputsJSON), status, now, lastApplyID, id)
 	if err != nil {
