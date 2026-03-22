@@ -78,6 +78,18 @@ docker compose pull && docker compose up -d
 
 Images are automatically built and published to GHCR on every push to main.
 
+### 4. Deploy Custom Changes (from source)
+
+If you've modified the source code (schemas, modules, frontend, backend):
+
+```bash
+rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'frontend/build' \
+  -e "ssh -i your-key.pem" \
+  ./ ubuntu@<IP>:~/wolkvorm/
+
+ssh -i your-key.pem ubuntu@<IP> "cd ~/wolkvorm && docker compose up -d --build"
+```
+
 ## Supported Services (25)
 
 ### Compute
