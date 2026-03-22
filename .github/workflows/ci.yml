@@ -13,16 +13,19 @@ jobs:
   backend-lint:
     name: Backend Lint
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version-file: backend/go.mod
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          working-directory: backend
+      - name: Vet
+        working-directory: backend
+        run: go vet ./...
+      - name: Staticcheck
+        working-directory: backend
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          staticcheck ./...
 
   backend-build:
     name: Backend Build
