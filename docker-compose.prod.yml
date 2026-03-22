@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  backend:
+    image: ghcr.io/wolkvorm/wolkvorm-backend:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - backend-data:/app/data
+      - /tmp/wolkvorm-run:/tmp/wolkvorm-run
+      - /tmp:/tmp
+    environment:
+      - EXECUTION_MODE=docker
+      - SCHEMAS_DIR=/schemas
+      - WOLKVORM_DATA_DIR=/app/data
+      - IAC_ENGINE=${IAC_ENGINE:-terraform}
+    depends_on:
+      runner:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/wolkvorm/wolkvorm-frontend:latest
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  runner:
+    image: ghcr.io/wolkvorm/wolkvorm-runner:latest
+    entrypoint: ["echo", "Runner image pulled successfully"]
+
+volumes:
+  backend-data:

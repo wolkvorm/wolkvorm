@@ -9,9 +9,18 @@
 ### Prerequisites
 
 - Docker & Docker Compose
-- AWS credentials (IAM role on EC2, or access key/secret)
+- AWS IAM Role (EC2 instance profile)
 
-### Run with Docker Compose
+### Option A: Production (pre-built images)
+
+No repo clone needed. Just download the compose file and run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/wolkvorm/wolkvorm/main/docker-compose.prod.yml -o docker-compose.yml
+docker compose up -d
+```
+
+### Option B: Development (build from source)
 
 ```bash
 git clone https://github.com/wolkvorm/wolkvorm.git
@@ -20,6 +29,12 @@ docker compose up -d --build
 ```
 
 Open `http://localhost:3000` in your browser. The first visit will prompt you to create an admin account.
+
+### Update to Latest Version
+
+```bash
+docker compose pull && docker compose up -d
+```
 
 ### Ports
 
@@ -48,25 +63,20 @@ curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker ubuntu
 newgrp docker
 
-# Clone and run
-git clone https://github.com/wolkvorm/wolkvorm.git ~/wolkvorm
-cd ~/wolkvorm
-docker compose up -d --build
+# Download and run (pre-built images, no build needed)
+curl -fsSL https://raw.githubusercontent.com/wolkvorm/wolkvorm/main/docker-compose.prod.yml -o docker-compose.yml
+docker compose up -d
 ```
 
-The application will be available at `http://<PUBLIC_IP>:3000` after ~3 minutes (initial build).
+The application will be available at `http://<PUBLIC_IP>:3000` within ~30 seconds.
 
-### 3. Push Updates
-
-From your local machine:
+### 3. Update to Latest
 
 ```bash
-rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'frontend/build' \
-  -e "ssh -i your-key.pem" \
-  ./wolkvorm/ ubuntu@<IP>:~/wolkvorm/
-
-ssh -i your-key.pem ubuntu@<IP> "cd ~/wolkvorm && docker compose up -d --build"
+docker compose pull && docker compose up -d
 ```
+
+Images are automatically built and published to GHCR on every push to main.
 
 ## Supported Services (25)
 
