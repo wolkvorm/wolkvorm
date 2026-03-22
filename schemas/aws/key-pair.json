@@ -10,7 +10,8 @@
     "outputs": [
       "key_pair_arn",
       "key_pair_id",
-      "key_pair_name"
+      "key_pair_name",
+      "private_key_pem"
     ]
   },
   "inputs": [
