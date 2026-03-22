@@ -1099,6 +1099,212 @@
             90% { opacity: 0.2; }
             100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
         }
+        /* ============================================
+           DOCUMENTATION SECTION
+           ============================================ */
+        .docs-section {
+            background: linear-gradient(180deg, transparent 0%, rgba(17, 24, 39, 0.5) 50%, transparent 100%);
+        }
+
+        .docs-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .docs-nav {
+            position: sticky;
+            top: 80px;
+            align-self: start;
+        }
+
+        .docs-nav-item {
+            display: block;
+            padding: 0.7rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-left: 2px solid var(--border);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .docs-nav-item:hover,
+        .docs-nav-item.active {
+            color: var(--accent);
+            border-left-color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        .docs-content {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        .docs-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .docs-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .docs-card p,
+        .docs-card li {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .docs-card ul,
+        .docs-card ol {
+            padding-left: 1.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .docs-card li {
+            margin-bottom: 0.4rem;
+        }
+
+        .docs-code {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.2rem 1.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .docs-code .comment {
+            color: var(--text-muted);
+        }
+
+        .docs-code .cmd {
+            color: var(--green);
+        }
+
+        .docs-step {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .docs-step-num {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gradient-1);
+            border-radius: 50%;
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .docs-step-content h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .docs-step-content p {
+            font-size: 0.9rem;
+        }
+
+        .docs-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .docs-table th,
+        .docs-table td {
+            padding: 0.6rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .docs-table th {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .docs-table td {
+            color: var(--text-secondary);
+        }
+
+        .docs-table td code {
+            background: rgba(249, 115, 22, 0.1);
+            color: var(--accent-light);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.82rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+
+        .docs-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .docs-badge-get {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--green);
+        }
+
+        .docs-badge-post {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--blue);
+        }
+
+        .docs-badge-ws {
+            background: rgba(168, 85, 247, 0.15);
+            color: var(--purple);
+        }
+
+        @media (max-width: 900px) {
+            .docs-grid {
+                grid-template-columns: 1fr;
+            }
+            .docs-nav {
+                position: static;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            .docs-nav-item {
+                border-left: none;
+                border-bottom: 2px solid var(--border);
+                padding: 0.5rem 0.8rem;
+                font-size: 0.85rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1122,7 +1328,7 @@
                 <li><a href="#features">Features</a></li>
                 <li><a href="#services">Services</a></li>
                 <li><a href="#comparison">Compare</a></li>
-                <li><a href="#roadmap">Roadmap</a></li>
+                <li><a href="#docs">Docs</a></li>
                 <li><a href="#cta" class="nav-cta">Get Started →</a></li>
             </ul>
         </div>
@@ -1562,7 +1768,302 @@
                 <p>Start deploying infrastructure in minutes. Open source, self-hosted, and completely free.</p>
                 <div style="display: flex; gap: 1rem; justify-content: center;">
                     <a href="https://github.com/wolkvorm" class="btn-primary" target="_blank">⭐ Star on GitHub</a>
-                    <a href="#" class="btn-secondary">📖 Read the Docs</a>
+                    <a href="#docs" class="btn-secondary">📖 Read the Docs</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         DOCUMENTATION
+         ========================================== -->
+    <section class="docs-section" id="docs">
+        <div class="container">
+            <div class="fade-in">
+                <div class="section-label">📖 Documentation</div>
+                <h2 class="section-title">Get Up and Running</h2>
+                <p class="section-subtitle">
+                    Everything you need to deploy Wolkvorm and start managing infrastructure.
+                </p>
+            </div>
+
+            <div class="docs-grid fade-in">
+                <nav class="docs-nav">
+                    <a class="docs-nav-item active" onclick="showDoc('quick-start')">Quick Start</a>
+                    <a class="docs-nav-item" onclick="showDoc('ec2-deploy')">EC2 Deployment</a>
+                    <a class="docs-nav-item" onclick="showDoc('configuration')">Configuration</a>
+                    <a class="docs-nav-item" onclick="showDoc('custom-resources')">Custom Resources</a>
+                    <a class="docs-nav-item" onclick="showDoc('api-ref')">API Reference</a>
+                    <a class="docs-nav-item" onclick="showDoc('instance-sizing')">Instance Sizing</a>
+                </nav>
+
+                <div class="docs-content">
+                    <!-- Quick Start -->
+                    <div class="docs-card" id="doc-quick-start">
+                        <h3>🚀 Quick Start</h3>
+                        <p>Get Wolkvorm running in under 5 minutes with Docker Compose.</p>
+
+                        <div style="margin-top: 1.5rem;">
+                            <div class="docs-step">
+                                <div class="docs-step-num">1</div>
+                                <div class="docs-step-content">
+                                    <h4>Prerequisites</h4>
+                                    <p>Install <strong>Docker</strong> and <strong>Docker Compose</strong> on your machine. You'll also need AWS credentials (IAM role or access key).</p>
+                                </div>
+                            </div>
+
+                            <div class="docs-step">
+                                <div class="docs-step-num">2</div>
+                                <div class="docs-step-content">
+                                    <h4>Clone and Build</h4>
+                                    <div class="docs-code">
+<span class="cmd">git clone</span> https://github.com/wolkvorm/wolkvorm.git<br>
+<span class="cmd">cd</span> wolkvorm<br>
+<span class="cmd">docker compose up -d --build</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="docs-step">
+                                <div class="docs-step-num">3</div>
+                                <div class="docs-step-content">
+                                    <h4>Open in Browser</h4>
+                                    <p>Navigate to <code style="background: rgba(249,115,22,0.1); color: var(--accent-light); padding: 2px 6px; border-radius: 4px;">http://localhost:3000</code>. Create your admin account on first visit, then configure your AWS credentials in Settings.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <table class="docs-table">
+                            <thead><tr><th>Service</th><th>Port</th><th>Description</th></tr></thead>
+                            <tbody>
+                                <tr><td>Frontend</td><td><code>3000</code></td><td>React UI with nginx proxy</td></tr>
+                                <tr><td>Backend</td><td><code>8080</code></td><td>Go API server</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- EC2 Deployment -->
+                    <div class="docs-card" id="doc-ec2-deploy" style="display: none;">
+                        <h3>☁️ Deploy to EC2</h3>
+                        <p>Run Wolkvorm on a dedicated AWS EC2 instance for team use.</p>
+
+                        <div style="margin-top: 1.5rem;">
+                            <div class="docs-step">
+                                <div class="docs-step-num">1</div>
+                                <div class="docs-step-content">
+                                    <h4>Launch an EC2 Instance</h4>
+                                    <ul>
+                                        <li><strong>AMI:</strong> Ubuntu 22.04 LTS</li>
+                                        <li><strong>Type:</strong> t3.medium (2 vCPU, 4 GB RAM)</li>
+                                        <li><strong>Storage:</strong> 30 GB gp3</li>
+                                        <li><strong>Security Group:</strong> Open ports 22, 3000, 8080</li>
+                                        <li><strong>IAM Role:</strong> Attach a role with permissions for AWS services you want to manage</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="docs-step">
+                                <div class="docs-step-num">2</div>
+                                <div class="docs-step-content">
+                                    <h4>Install Docker and Run</h4>
+                                    <div class="docs-code">
+<span class="cmd">ssh</span> -i your-key.pem ubuntu@YOUR_IP<br><br>
+<span class="comment"># Install Docker</span><br>
+<span class="cmd">curl</span> -fsSL https://get.docker.com | sh<br>
+<span class="cmd">sudo usermod</span> -aG docker ubuntu<br>
+<span class="cmd">newgrp</span> docker<br><br>
+<span class="comment"># Clone and run</span><br>
+<span class="cmd">git clone</span> https://github.com/wolkvorm/wolkvorm.git ~/wolkvorm<br>
+<span class="cmd">cd</span> ~/wolkvorm<br>
+<span class="cmd">docker compose up -d --build</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="docs-step">
+                                <div class="docs-step-num">3</div>
+                                <div class="docs-step-content">
+                                    <h4>Access</h4>
+                                    <p>Open <code style="background: rgba(249,115,22,0.1); color: var(--accent-light); padding: 2px 6px; border-radius: 4px;">http://YOUR_IP:3000</code> after ~3 minutes (initial build).</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 style="margin-top: 1.5rem; font-weight: 600;">Push Updates</h4>
+                        <div class="docs-code">
+<span class="comment"># From your local machine</span><br>
+<span class="cmd">rsync</span> -avz --exclude 'node_modules' --exclude '.git' \<br>
+&nbsp;&nbsp;-e "ssh -i your-key.pem" \<br>
+&nbsp;&nbsp;./wolkvorm/ ubuntu@IP:~/wolkvorm/<br><br>
+<span class="cmd">ssh</span> -i your-key.pem ubuntu@IP \<br>
+&nbsp;&nbsp;"cd ~/wolkvorm && docker compose up -d --build"
+                        </div>
+                    </div>
+
+                    <!-- Configuration -->
+                    <div class="docs-card" id="doc-configuration" style="display: none;">
+                        <h3>⚙️ Configuration</h3>
+                        <p>Configure Wolkvorm through the Settings page in the UI.</p>
+
+                        <h4 style="margin-top: 1.5rem; font-weight: 700;">AWS Credentials</h4>
+                        <p>Go to <strong>Settings &gt; AWS</strong>:</p>
+                        <ul>
+                            <li><strong>IAM Role</strong> (recommended for EC2) — No credentials needed, uses instance profile automatically.</li>
+                            <li><strong>Access Key</strong> — Enter your AWS Access Key ID and Secret Access Key.</li>
+                            <li><strong>Default Region</strong> — Set the default region for new resources.</li>
+                        </ul>
+
+                        <h4 style="margin-top: 1.5rem; font-weight: 700;">S3 State Backend</h4>
+                        <p>Terraform state is stored remotely in S3 for durability and team access.</p>
+                        <ol>
+                            <li>Go to <strong>Settings &gt; AWS</strong> and enter an S3 bucket name.</li>
+                            <li>Optionally configure a DynamoDB table for state locking.</li>
+                            <li>Go to <strong>My Resources</strong> and click <strong>Initialize State Backend</strong>.</li>
+                        </ol>
+
+                        <h4 style="margin-top: 1.5rem; font-weight: 700;">GitHub Integration (optional)</h4>
+                        <p>Generate Terraform HCL and open pull requests from the UI.</p>
+                        <ol>
+                            <li>Create a GitHub App with repository read/write permissions.</li>
+                            <li>Go to <strong>Settings &gt; GitHub</strong>.</li>
+                            <li>Enter the App ID and upload the private key PEM file.</li>
+                        </ol>
+
+                        <h4 style="margin-top: 1.5rem; font-weight: 700;">Cost Estimation (optional)</h4>
+                        <p>Go to <strong>Settings &gt; Infracost</strong> and enter your Infracost API key to enable pre-deploy cost estimates.</p>
+                    </div>
+
+                    <!-- Custom Resources -->
+                    <div class="docs-card" id="doc-custom-resources" style="display: none;">
+                        <h3>🧩 Adding Custom Resources</h3>
+                        <p>Every resource in Wolkvorm is defined as a JSON schema file. Add new resources by creating a JSON file in <code style="background: rgba(249,115,22,0.1); color: var(--accent-light); padding: 2px 6px; border-radius: 4px;">schemas/aws/</code>.</p>
+
+                        <div class="docs-code">
+{<br>
+&nbsp;&nbsp;"id": "my-service",<br>
+&nbsp;&nbsp;"name": "My Service",<br>
+&nbsp;&nbsp;"description": "Description of the service",<br>
+&nbsp;&nbsp;"provider": "aws",<br>
+&nbsp;&nbsp;"icon": "my-service",<br>
+&nbsp;&nbsp;"category": "compute",<br>
+&nbsp;&nbsp;"module": {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"source": "git::https://github.com/...",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"outputs": ["arn", "id"]<br>
+&nbsp;&nbsp;},<br>
+&nbsp;&nbsp;"inputs": [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "name",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"label": "Service Name",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "string",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"required": true<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;],<br>
+&nbsp;&nbsp;"common_inputs": {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"region": true,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"environment": true,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"tags": true<br>
+&nbsp;&nbsp;}<br>
+}
+                        </div>
+
+                        <h4 style="margin-top: 1.5rem; font-weight: 700;">Input Types</h4>
+                        <table class="docs-table">
+                            <thead><tr><th>Type</th><th>Description</th></tr></thead>
+                            <tbody>
+                                <tr><td><code>string</code></td><td>Text input field</td></tr>
+                                <tr><td><code>number</code></td><td>Numeric input</td></tr>
+                                <tr><td><code>boolean</code></td><td>Checkbox toggle</td></tr>
+                                <tr><td><code>select</code></td><td>Dropdown with predefined options</td></tr>
+                                <tr><td><code>multiline</code></td><td>Multi-line text area</td></tr>
+                                <tr><td><code>hcl</code></td><td>HCL code editor for complex types</td></tr>
+                                <tr><td><code>nodegroups</code></td><td>Visual node group editor (EKS)</td></tr>
+                            </tbody>
+                        </table>
+
+                        <h4 style="margin-top: 1.5rem; font-weight: 700;">Special Fields</h4>
+                        <table class="docs-table">
+                            <thead><tr><th>Field</th><th>Effect</th></tr></thead>
+                            <tbody>
+                                <tr><td><code>advanced: true</code></td><td>Hidden under Advanced Settings toggle</td></tr>
+                                <tr><td><code>required: true</code></td><td>Form validation enforced</td></tr>
+                                <tr><td><code>aws_resource: "vpc"</code></td><td>Live AWS resource picker dropdown</td></tr>
+                                <tr><td><code>multi: true</code></td><td>Comma-separated list input</td></tr>
+                            </tbody>
+                        </table>
+
+                        <p style="margin-top: 1rem;">Restart the backend after adding a new schema. The resource will appear automatically in the UI.</p>
+                    </div>
+
+                    <!-- API Reference -->
+                    <div class="docs-card" id="doc-api-ref" style="display: none;">
+                        <h3>🔌 API Reference</h3>
+                        <p>All endpoints are served from the backend on port 8080. Authentication is via Bearer token.</p>
+
+                        <h4 style="margin-top: 1.5rem; font-weight: 700;">Schemas</h4>
+                        <table class="docs-table">
+                            <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+                            <tbody>
+                                <tr><td><span class="docs-badge docs-badge-get">GET</span></td><td><code>/api/schemas</code></td><td>List all resource schemas</td></tr>
+                                <tr><td><span class="docs-badge docs-badge-get">GET</span></td><td><code>/api/schemas/{id}</code></td><td>Get schema by ID</td></tr>
+                            </tbody>
+                        </table>
+
+                        <h4 style="margin-top: 1.5rem; font-weight: 700;">Operations</h4>
+                        <table class="docs-table">
+                            <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+                            <tbody>
+                                <tr><td><span class="docs-badge docs-badge-post">POST</span></td><td><code>/api/plan</code></td><td>Run terraform plan</td></tr>
+                                <tr><td><span class="docs-badge docs-badge-post">POST</span></td><td><code>/api/apply</code></td><td>Run terraform apply</td></tr>
+                                <tr><td><span class="docs-badge docs-badge-post">POST</span></td><td><code>/api/destroy</code></td><td>Run terraform destroy</td></tr>
+                                <tr><td><span class="docs-badge docs-badge-ws">WS</span></td><td><code>/api/ws/run</code></td><td>Real-time operation logs</td></tr>
+                                <tr><td><span class="docs-badge docs-badge-get">GET</span></td><td><code>/api/plan/history</code></td><td>Execution history</td></tr>
+                            </tbody>
+                        </table>
+
+                        <h4 style="margin-top: 1.5rem; font-weight: 700;">Resources</h4>
+                        <table class="docs-table">
+                            <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+                            <tbody>
+                                <tr><td><span class="docs-badge docs-badge-get">GET</span></td><td><code>/api/resources</code></td><td>List managed resources</td></tr>
+                                <tr><td><span class="docs-badge docs-badge-get">GET</span></td><td><code>/api/resources/{id}</code></td><td>Resource details + outputs</td></tr>
+                                <tr><td><span class="docs-badge docs-badge-post">POST</span></td><td><code>/api/resources/{id}/refresh-outputs</code></td><td>Fetch outputs from state</td></tr>
+                            </tbody>
+                        </table>
+
+                        <h4 style="margin-top: 1.5rem; font-weight: 700;">Other</h4>
+                        <table class="docs-table">
+                            <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+                            <tbody>
+                                <tr><td><span class="docs-badge docs-badge-get">GET</span></td><td><code>/api/graph</code></td><td>Resource dependency graph</td></tr>
+                                <tr><td><span class="docs-badge docs-badge-post">POST</span></td><td><code>/api/cost-estimate</code></td><td>Estimate resource cost</td></tr>
+                                <tr><td><span class="docs-badge docs-badge-get">GET</span></td><td><code>/api/audit</code></td><td>Audit log entries</td></tr>
+                                <tr><td><span class="docs-badge docs-badge-get">GET</span></td><td><code>/api/approvals</code></td><td>Pending approvals</td></tr>
+                                <tr><td><span class="docs-badge docs-badge-post">POST</span></td><td><code>/api/import/scan</code></td><td>Scan AWS for importable resources</td></tr>
+                                <tr><td><span class="docs-badge docs-badge-get">GET</span></td><td><code>/api/settings</code></td><td>Current settings</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Instance Sizing -->
+                    <div class="docs-card" id="doc-instance-sizing" style="display: none;">
+                        <h3>📐 Instance Sizing Guide</h3>
+                        <p>Choose the right EC2 instance based on your team size and concurrent operations.</p>
+
+                        <table class="docs-table" style="margin-top: 1.5rem;">
+                            <thead><tr><th>Users</th><th>Instance</th><th>RAM</th><th>Monthly Cost</th></tr></thead>
+                            <tbody>
+                                <tr><td>1 (dev/test)</td><td><code>t3.medium</code></td><td>4 GB</td><td>~$30</td></tr>
+                                <tr><td>2-3 users</td><td><code>t3.large</code></td><td>8 GB</td><td>~$60</td></tr>
+                                <tr><td>4+ users</td><td><code>t3.xlarge</code></td><td>16 GB</td><td>~$120</td></tr>
+                            </tbody>
+                        </table>
+
+                        <p style="margin-top: 1rem;">Each concurrent terraform plan/apply operation uses approximately <strong>200-500 MB RAM</strong> in a Docker container. A t3.medium comfortably handles 2-3 simultaneous operations.</p>
+
+                        <h4 style="margin-top: 1.5rem; font-weight: 700;">Storage</h4>
+                        <p>Minimum <strong>30 GB gp3</strong> recommended. Docker images, Terraform provider cache, and state files consume storage over time. Monitor with <code style="background: rgba(249,115,22,0.1); color: var(--accent-light); padding: 2px 6px; border-radius: 4px;">df -h</code> and clean with <code style="background: rgba(249,115,22,0.1); color: var(--accent-light); padding: 2px 6px; border-radius: 4px;">docker system prune</code> periodically.</p>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -1574,7 +2075,7 @@
             <div class="logo" style="font-size: 1.2rem;">Wolk<span>vorm</span></div>
             <div class="footer-links">
                 <a href="https://github.com/wolkvorm" target="_blank">GitHub</a>
-                <a href="#">Documentation</a>
+                <a href="#docs">Documentation</a>
                 <a href="#">Community</a>
             </div>
             <div class="footer-copy">
@@ -1764,6 +2265,18 @@
             // Redraw lines on resize
             window.addEventListener('resize', drawLines);
         })();
+
+        // Documentation tab switcher
+        function showDoc(id) {
+            const cards = document.querySelectorAll('.docs-card');
+            cards.forEach(c => c.style.display = 'none');
+            const target = document.getElementById('doc-' + id);
+            if (target) target.style.display = 'block';
+
+            const navItems = document.querySelectorAll('.docs-nav-item');
+            navItems.forEach(n => n.classList.remove('active'));
+            event.target.classList.add('active');
+        }
     </script>
 </body>
 </html>

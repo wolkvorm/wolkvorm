@@ -191,7 +191,7 @@ func refreshOutputsHandler(w http.ResponseWriter, r *http.Request) {
 			Name:       jobName,
 			Image:      getRunnerImage(),
 			Command:    []string{"/bin/sh"},
-			Args:       []string{"-c", "cd /workspace && terraform output -json"},
+			Args:       []string{"-c", "cd /workspace && terraform init -no-color -input=false && terraform output -json"},
 			EnvVars:    envVars,
 			HCLContent: hcl,
 		})
@@ -206,7 +206,7 @@ func refreshOutputsHandler(w http.ResponseWriter, r *http.Request) {
 			"-e", "AWS_DEFAULT_REGION="+resource.Region,
 			"-v", runDir+":/workspace",
 			"wolkvorm-runner",
-			"-c", "cd /workspace && terraform output -json",
+			"-c", "cd /workspace && terraform init -no-color -input=false && terraform output -json",
 		)
 		cmd := exec.Command("docker", args...)
 		outputBytes, _ = cmd.CombinedOutput()

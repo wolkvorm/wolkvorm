@@ -68,7 +68,7 @@
       "description": "Comma-separated custom domain names. Requires an ACM certificate in us-east-1."
     },
     {
-      "name": "origins",
+      "name": "origin",
       "label": "Origins (JSON)",
       "type": "multiline",
       "placeholder": "{\n  \"s3\": {\n    \"domain_name\": \"my-bucket.s3.amazonaws.com\",\n    \"s3_origin_config\": {\"origin_access_identity\": \"\"}\n  },\n  \"api\": {\n    \"domain_name\": \"api.example.com\",\n    \"custom_origin_config\": {\"http_port\": 80, \"https_port\": 443, \"origin_protocol_policy\": \"https-only\"}\n  }\n}",

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import AwsResourceSelect from "./AwsResourceSelect";
 import SecurityGroupRules from "./SecurityGroupRules";
+import NodeGroupEditor from "./NodeGroupEditor";
 
 // Validation patterns
 const PATTERNS = {
@@ -291,6 +292,14 @@ function DynamicForm({ schema, onSubmit, values, onChange, defaultRegion, onRegi
             value={Array.isArray(value) ? value : []}
             onChange={(rules) => handleChange(field.name, rules)}
             label={field.label}
+          />
+        );
+
+      case "nodegroups":
+        return (
+          <NodeGroupEditor
+            value={Array.isArray(value) ? value : []}
+            onChange={(groups) => handleChange(field.name, groups)}
           />
         );
 

@@ -378,6 +378,28 @@ func wsRunHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("[WS] Outputs saved for resource %s\n", res.Name)
 		}
 	}
+	if status == "error" && req.Action == "apply" {
+		existing := dbGetResourceByStateKey(stateKey)
+		if existing == nil {
+			resID := fmt.Sprintf("res-%d", time.Now().UnixMilli())
+			now := time.Now().Format("2006-01-02 15:04:05")
+			dbInsertResource(ManagedResource{
+				ID:          resID,
+				Name:        resourceName,
+				SchemaID:    req.SchemaID,
+				SchemaName:  schema.Name,
+				Env:         req.Env,
+				Region:      req.Region,
+				Inputs:      req.Inputs,
+				StateKey:    stateKey,
+				Status:      "failed",
+				CreatedAt:   now,
+				UpdatedAt:   now,
+				LastApplyID: recordID,
+			})
+			fmt.Printf("[WS] Resource tracked as failed: %s (%s)\n", resourceName, resID)
+		}
+	}
 	if status == "success" && req.Action == "destroy" {
 		if existing := dbGetResourceByStateKey(stateKey); existing != nil {
 			dbUpdateResourceStatus(existing.ID, "destroyed")

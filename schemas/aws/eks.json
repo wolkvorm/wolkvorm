@@ -107,34 +107,39 @@
     },
     {
       "name": "eks_managed_node_groups",
-      "label": "Managed Node Groups (JSON)",
-      "type": "multiline",
-      "placeholder": "{\n  \"default\": {\n    \"instance_types\": [\"t3.medium\"],\n    \"min_size\": 1,\n    \"max_size\": 3,\n    \"desired_size\": 2\n  }\n}",
-      "description": "Map of EKS managed node group definitions. Each key is the node group name.",
-      "advanced": true
+      "label": "Managed Node Groups",
+      "type": "nodegroups",
+      "description": "Define EKS managed node groups with instance type and scaling configuration."
+    },
+    {
+      "name": "install_core_addons",
+      "label": "Install Core Addons",
+      "type": "boolean",
+      "default": true,
+      "description": "Install essential Kubernetes addons (VPC CNI, CoreDNS, kube-proxy). Required for nodes to become Ready."
     },
     {
       "name": "fargate_profiles",
-      "label": "Fargate Profiles (JSON)",
-      "type": "multiline",
-      "placeholder": "{\n  \"default\": {\n    \"selectors\": [\n      {\"namespace\": \"kube-system\"}\n    ]\n  }\n}",
+      "label": "Fargate Profiles (HCL)",
+      "type": "hcl",
+      "placeholder": "{\n  default = {\n    selectors = [\n      { namespace = \"kube-system\" }\n    ]\n  }\n}",
       "description": "Map of Fargate profile definitions for serverless pods",
       "advanced": true
     },
     {
       "name": "access_entries",
-      "label": "Access Entries (JSON)",
-      "type": "multiline",
-      "placeholder": "{\n  \"admin\": {\n    \"principal_arn\": \"arn:aws:iam::123456789012:role/admin\",\n    \"policy_associations\": {\n      \"admin\": {\"policy_arn\": \"arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy\"}\n    }\n  }\n}",
+      "label": "Access Entries (HCL)",
+      "type": "hcl",
+      "placeholder": "{\n  admin = {\n    principal_arn = \"arn:aws:iam::123456789012:role/admin\"\n    policy_associations = {\n      admin = {\n        policy_arn = \"arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy\"\n      }\n    }\n  }\n}",
       "description": "Map of access entries to add to the cluster for IAM principals",
       "advanced": true
     },
     {
       "name": "cluster_addons",
-      "label": "Cluster Addons (JSON)",
-      "type": "multiline",
-      "placeholder": "{\n  \"coredns\": {\"most_recent\": true},\n  \"kube-proxy\": {\"most_recent\": true},\n  \"vpc-cni\": {\"most_recent\": true},\n  \"aws-ebs-csi-driver\": {\"most_recent\": true}\n}",
-      "description": "Map of EKS add-on configurations to enable on the cluster",
+      "label": "Extra Cluster Addons (HCL)",
+      "type": "hcl",
+      "placeholder": "{\n  aws-ebs-csi-driver = { most_recent = true }\n}",
+      "description": "Additional EKS add-ons beyond the core set (vpc-cni, coredns, kube-proxy)",
       "advanced": true
     }
   ],

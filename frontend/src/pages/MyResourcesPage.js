@@ -151,7 +151,7 @@ function MyResourcesPage() {
     setStateInitializing(false);
   };
 
-  const activeResources = resources.filter((r) => r.status === "active" || r.status === "unknown");
+  const activeResources = resources.filter((r) => r.status === "active" || r.status === "unknown" || r.status === "failed");
 
   // Get unique values for filters
   const schemas = [...new Set(resources.map((r) => r.schema_id))];
@@ -308,10 +308,10 @@ function MyResourcesPage() {
                 </div>
                 <div style={{
                   ...styles.statusBadge,
-                  background: resource.status === "active" ? "rgba(34,197,94,0.15)" :
-                    resource.status === "unknown" ? "rgba(245,158,11,0.15)" : "rgba(239,68,68,0.15)",
-                  color: resource.status === "active" ? "#22c55e" :
-                    resource.status === "unknown" ? "#f59e0b" : "#ef4444",
+                  background: resource.status === "active" ? `${theme.colors.success}22` :
+                    resource.status === "unknown" ? `${theme.colors.warning}22` : `${theme.colors.danger}22`,
+                  color: resource.status === "active" ? theme.colors.success :
+                    resource.status === "unknown" ? theme.colors.warning : theme.colors.danger,
                 }}>
                   {resource.status === "unknown" ? "unverified" : resource.status}
                 </div>
@@ -346,8 +346,8 @@ function MyResourcesPage() {
                     <button
                       style={{
                         ...styles.copyBtn,
-                        background: isCopied ? 'rgba(34,197,94,0.15)' : 'rgba(99,102,241,0.1)',
-                        color: isCopied ? '#22c55e' : theme.colors.primary,
+                        background: isCopied ? `${theme.colors.success}22` : `${theme.colors.primary}1a`,
+                        color: isCopied ? theme.colors.success : theme.colors.primary,
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -447,8 +447,8 @@ function getStyles(theme) {
       fontWeight: 600,
     },
     stateBanner: {
-      background: "rgba(245,158,11,0.08)",
-      border: `1px solid rgba(245,158,11,0.3)`,
+      background: `${theme.colors.warning}14`,
+      border: `1px solid ${theme.colors.warning}4d`,
       borderRadius: theme.radius.lg,
       padding: 24,
       marginBottom: 24,
@@ -463,8 +463,8 @@ function getStyles(theme) {
       padding: "12px 24px",
       borderRadius: theme.radius.sm,
       border: "none",
-      background: "#f59e0b",
-      color: "#000",
+      background: theme.colors.warning,
+      color: "#fff",
       fontSize: 14,
       fontWeight: 600,
       cursor: "pointer",
@@ -476,8 +476,8 @@ function getStyles(theme) {
       alignItems: "center",
       gap: 10,
       padding: "10px 16px",
-      background: "rgba(34,197,94,0.06)",
-      border: `1px solid rgba(34,197,94,0.2)`,
+      background: `${theme.colors.success}0f`,
+      border: `1px solid ${theme.colors.success}33`,
       borderRadius: theme.radius.sm,
       marginBottom: 24,
     },
@@ -485,7 +485,7 @@ function getStyles(theme) {
       width: 8,
       height: 8,
       borderRadius: "50%",
-      background: "#22c55e",
+      background: theme.colors.success,
       flexShrink: 0,
     },
     stateInfoText: {
@@ -658,8 +658,8 @@ function getStyles(theme) {
       padding: "8px 0",
       textAlign: "center",
       borderRadius: theme.radius.sm,
-      background: "rgba(34,197,94,0.1)",
-      color: "#22c55e",
+      background: `${theme.colors.success}1a`,
+      color: theme.colors.success,
       fontSize: 13,
       fontWeight: 600,
       textDecoration: "none",
@@ -670,8 +670,8 @@ function getStyles(theme) {
       padding: "8px 0",
       textAlign: "center",
       borderRadius: theme.radius.sm,
-      background: "rgba(239,68,68,0.1)",
-      color: "#ef4444",
+      background: `${theme.colors.danger}1a`,
+      color: theme.colors.danger,
       fontSize: 13,
       fontWeight: 600,
       textDecoration: "none",

@@ -5,8 +5,9 @@ import PlanModal from "../components/PlanModal";
 import PRButton from "../components/PRButton";
 import ConfirmModal from "../components/ConfirmModal";
 import { useTheme } from "../contexts/ThemeContext";
+import { useOperations } from "../contexts/OperationContext";
 
-import { API, WS_API, authFetch, getToken } from "../config";
+import { API, authFetch } from "../config";
 import { useAuth } from "../contexts/AuthContext";
 
 function ResourcePage() {
@@ -16,12 +17,12 @@ function ResourcePage() {
   const editResourceId = searchParams.get("edit");
   const { theme } = useTheme();
   const styles = getStyles(theme);
+  const { startOperation, getOperation } = useOperations();
 
   const [schema, setSchema] = useState(null);
   const [values, setValues] = useState({});
   const [logs, setLogs] = useState("");
   const [showPlan, setShowPlan] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
   const [repos, setRepos] = useState([]);
   const [selectedRepo, setSelectedRepo] = useState("");
   const [region, setRegion] = useState("eu-central-1");
@@ -32,8 +33,8 @@ function ResourcePage() {
   const [costEstimate, setCostEstimate] = useState(null);
   const [costLoading, setCostLoading] = useState(false);
   const [editingResource, setEditingResource] = useState(null);
-  const [confirmAction, setConfirmAction] = useState(null); // { action, inputs, region, env }
-  const wsRef = useRef(null);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const activeOpRef = useRef(null);
 
   // Load default region from settings
   useEffect(() => {
@@ -97,16 +98,6 @@ function ResourcePage() {
     fetchHistory();
   }, [fetchHistory]);
 
-  const fetchLogs = async () => {
-    try {
-      const res = await authFetch(`${API}/api/plan/logs`);
-      const text = await res.text();
-      setLogs(text);
-    } catch (err) {
-      console.error("Log fetch failed:", err);
-    }
-  };
-
   const viewPlanDetail = async (planId) => {
     try {
       const res = await authFetch(`${API}/api/plan/history/${planId}`);
@@ -119,113 +110,34 @@ function ResourcePage() {
     }
   };
 
-  const handleSubmit = async ({ inputs, region: r, env: e, action }) => {
+  const launchOp = useCallback((action, inputs, r, e) => {
+    const titles = { plan: "Terraform Plan", apply: "Terraform Apply", destroy: "Terraform Destroy" };
+    setPlanModalTitle(titles[action]);
+
+    const opId = startOperation({
+      schemaId: id,
+      schemaName: schema?.name || id,
+      action,
+      inputs,
+      region: r,
+      env: e,
+      resourceId: editResourceId || undefined,
+    });
+    activeOpRef.current = opId;
+    setShowPlan(true);
+  }, [id, schema, editResourceId, startOperation]);
+
+  const handleSubmit = ({ inputs, region: r, env: e, action }) => {
     setRegion(r);
     setEnv(e);
 
-    if (action === "plan" || action === "apply" || action === "destroy") {
-      const titles = { plan: "Terraform Plan", apply: "Terraform Apply", destroy: "Terraform Destroy" };
+    if (action === "apply" || action === "destroy") {
+      setConfirmAction({ action, inputs, region: r, env: e });
+      return;
+    }
 
-      if (action === "apply") {
-        setConfirmAction({ action, inputs, region: r, env: e });
-        return;
-      }
-      if (action === "destroy") {
-        setConfirmAction({ action, inputs, region: r, env: e });
-        return;
-      }
-
-      setLogs(`Starting terraform ${action}...\n`);
-      setPlanModalTitle(titles[action]);
-      setShowPlan(true);
-      setIsRunning(true);
-
-      // Close existing WebSocket if any
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-
-      try {
-        const token = getToken();
-        const wsUrl = token ? `${WS_API}/api/ws/run?token=${token}` : `${WS_API}/api/ws/run`;
-        const ws = new WebSocket(wsUrl);
-        wsRef.current = ws;
-
-        ws.onopen = () => {
-          ws.send(JSON.stringify({
-            schemaId: id,
-            inputs,
-            region: r,
-            env: e,
-            action,
-            ...(editResourceId && { resourceId: editResourceId }),
-          }));
-        };
-
-        ws.onmessage = (event) => {
-          const msg = JSON.parse(event.data);
-          if (msg.type === "log") {
-            setLogs((prev) => prev + msg.data + "\n");
-          } else if (msg.type === "done") {
-            setIsRunning(false);
-            fetchHistory();
-          } else if (msg.type === "approval_required") {
-            setLogs(`⏳ Approval Required\n\n${msg.data}\n\nPlease go to the Approvals page to approve or reject this request.\n`);
-            setIsRunning(false);
-          } else if (msg.type === "error") {
-            setLogs((prev) => prev + "ERROR: " + msg.data + "\n");
-            setIsRunning(false);
-          }
-        };
-
-        ws.onerror = () => {
-          // Fallback to HTTP polling if WebSocket fails
-          console.warn("WebSocket failed, falling back to HTTP polling");
-          setLogs(`Starting terraform ${action} (polling mode)...\n`);
-
-          const endpoints = { plan: `${API}/api/plan`, apply: `${API}/api/apply`, destroy: `${API}/api/destroy` };
-          authFetch(endpoints[action], {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ schemaId: id, inputs, region: r, env: e }),
-          }).then(res => res.json()).then(data => {
-            if (data.status === "approval_required") {
-              setLogs(`⏳ Approval Required\n\n${data.message}\n\nPlease go to the Approvals page to approve or reject this request.\n`);
-              setIsRunning(false);
-            } else {
-              setIsRunning(false);
-              fetchHistory();
-            }
-          }).catch(() => { setIsRunning(false); });
-
-          const interval = setInterval(fetchLogs, 2000);
-          const timeout = action === "plan" ? 300000 : 600000;
-          setTimeout(() => { clearInterval(interval); setIsRunning(false); }, timeout);
-        };
-
-        ws.onclose = () => {
-          wsRef.current = null;
-        };
-      } catch {
-        // Fallback to HTTP if WebSocket constructor fails
-        const endpoints = { plan: `${API}/api/plan`, apply: `${API}/api/apply`, destroy: `${API}/api/destroy` };
-        authFetch(endpoints[action], {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ schemaId: id, inputs, region: r, env: e }),
-        }).then(res => res.json()).then(data => {
-          if (data.status === "approval_required") {
-            setLogs(`⏳ Approval Required\n\n${data.message}\n\nPlease go to the Approvals page to approve or reject this request.\n`);
-            setIsRunning(false);
-          } else {
-            setIsRunning(false);
-            fetchHistory();
-          }
-        }).catch(() => { setIsRunning(false); });
-
-        const interval = setInterval(fetchLogs, 2000);
-        setTimeout(() => { clearInterval(interval); setIsRunning(false); }, 300000);
-      }
+    if (action === "plan") {
+      launchOp(action, inputs, r, e);
     }
   };
 
@@ -258,47 +170,22 @@ function ResourcePage() {
     if (!confirmAction) return;
     const { action, inputs, region: r, env: e } = confirmAction;
     setConfirmAction(null);
-
-    const titles = { plan: "Terraform Plan", apply: "Terraform Apply", destroy: "Terraform Destroy" };
-    setLogs(`Starting terraform ${action}...\n`);
-    setPlanModalTitle(titles[action]);
-    setShowPlan(true);
-    setIsRunning(true);
-
-    if (wsRef.current) wsRef.current.close();
-
-    try {
-      const token = getToken();
-      const wsUrl = token ? `${WS_API}/api/ws/run?token=${token}` : `${WS_API}/api/ws/run`;
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        ws.send(JSON.stringify({ schemaId: id, inputs, region: r, env: e, action, ...(editResourceId && { resourceId: editResourceId }) }));
-      };
-      ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        if (msg.type === "log") { setLogs(p => p + msg.data + "\n"); }
-        else if (msg.type === "done") { setIsRunning(false); fetchHistory(); }
-        else if (msg.type === "approval_required") {
-          setLogs(`⏳ Approval Required\n\n${msg.data}\n\nPlease go to the Approvals page.\n`);
-          setIsRunning(false);
-        } else if (msg.type === "error") { setLogs(p => p + "ERROR: " + msg.data + "\n"); setIsRunning(false); }
-      };
-      ws.onerror = () => {
-        const endpoints = { apply: `${API}/api/apply`, destroy: `${API}/api/destroy` };
-        authFetch(endpoints[action], {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ schemaId: id, inputs, region: r, env: e }),
-        }).then(res => res.json()).then(() => { setIsRunning(false); fetchHistory(); })
-          .catch(() => { setIsRunning(false); });
-      };
-      ws.onclose = () => { wsRef.current = null; };
-    } catch {
-      setIsRunning(false);
-    }
+    launchOp(action, inputs, r, e);
   };
+
+  // Sync active operation logs/status into PlanModal
+  const activeOp = activeOpRef.current ? getOperation(activeOpRef.current) : null;
+  const displayLogs = activeOp ? activeOp.logs : logs;
+  const isRunning = activeOp ? activeOp.status === "running" : false;
+
+  // Refresh history when an operation completes
+  const prevStatusRef = useRef(null);
+  useEffect(() => {
+    if (activeOp && prevStatusRef.current === "running" && activeOp.status !== "running") {
+      fetchHistory();
+    }
+    prevStatusRef.current = activeOp?.status || null;
+  }, [activeOp?.status, fetchHistory]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!schema) {
     return (
@@ -572,18 +459,10 @@ function ResourcePage() {
 
       <PlanModal
         visible={showPlan}
-        logs={logs}
+        logs={displayLogs}
         title={planModalTitle}
         isRunning={isRunning}
-        onClose={() => {
-          setShowPlan(false);
-          // Don't kill WebSocket or reset isRunning — let the operation continue in background.
-          // Logs keep accumulating so user can reopen modal to see them.
-          if (!isRunning && wsRef.current) {
-            wsRef.current.close();
-            wsRef.current = null;
-          }
-        }}
+        onClose={() => setShowPlan(false)}
       />
 
       <ConfirmModal
@@ -600,40 +479,6 @@ function ResourcePage() {
         onCancel={() => setConfirmAction(null)}
       />
 
-      {/* Floating banner to reopen logs when running in background */}
-      {isRunning && !showPlan && (
-        <div
-          onClick={() => setShowPlan(true)}
-          style={{
-            position: "fixed",
-            bottom: 24,
-            right: 24,
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "12px 20px",
-            background: theme.colors.card,
-            border: `1px solid ${theme.colors.warning}`,
-            borderRadius: theme.radius.md,
-            cursor: "pointer",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-            zIndex: 999,
-            animation: "fadeIn 0.2s ease-out",
-          }}
-        >
-          <div style={{
-            width: 10, height: 10, borderRadius: "50%",
-            background: theme.colors.warning,
-            animation: "pulse 1s infinite",
-          }} />
-          <span style={{ fontSize: 13, fontWeight: 600, color: theme.colors.text }}>
-            Operation running...
-          </span>
-          <span style={{ fontSize: 12, color: theme.colors.textMuted }}>
-            Click to view logs
-          </span>
-        </div>
-      )}
     </div>
   );
 }

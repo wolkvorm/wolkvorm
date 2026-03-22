@@ -305,6 +305,29 @@ func runTerragrunt(req PlanRequest, action string, tgCommand string) (string, st
 		}
 	}
 
+	if status == "error" && action == "apply" {
+		existing := dbGetResourceByStateKey(stateKey)
+		if existing == nil {
+			resID := fmt.Sprintf("res-%d", time.Now().UnixMilli())
+			now := time.Now().Format("2006-01-02 15:04:05")
+			dbInsertResource(ManagedResource{
+				ID:          resID,
+				Name:        resourceName,
+				SchemaID:    req.SchemaID,
+				SchemaName:  schema.Name,
+				Env:         req.Env,
+				Region:      req.Region,
+				Inputs:      req.Inputs,
+				StateKey:    stateKey,
+				Status:      "failed",
+				CreatedAt:   now,
+				UpdatedAt:   now,
+				LastApplyID: recordID,
+			})
+			fmt.Printf("Resource tracked as failed: %s (%s)\n", resourceName, resID)
+		}
+	}
+
 	if status == "success" && action == "destroy" {
 		// First try: use resourceId directly if provided (from edit mode)
 		if req.ResourceID != "" {
@@ -320,7 +343,7 @@ func runTerragrunt(req PlanRequest, action string, tgCommand string) (string, st
 				// Fallback: find active resources matching schema and env
 				allResources := dbGetResources(false)
 				for _, r := range allResources {
-					if r.SchemaID == req.SchemaID && r.Env == req.Env && (r.Status == "active" || r.Status == "unknown") {
+					if r.SchemaID == req.SchemaID && r.Env == req.Env && (r.Status == "active" || r.Status == "unknown" || r.Status == "failed") {
 						formName := getResourceName(req.SchemaID, req.Inputs)
 						storedName := getResourceName(r.SchemaID, r.Inputs)
 						if formName == storedName || r.Name == formName {

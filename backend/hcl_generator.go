@@ -86,6 +86,8 @@ func GenerateHCLWithOptions(schema *ResourceSchema, inputs map[string]any, env s
 	}
 	var blockFields []blockField
 
+	installCoreAddons := false
+
 	for _, field := range schema.Inputs {
 		val, exists := inputs[field.Name]
 		if !exists {
@@ -94,6 +96,16 @@ func GenerateHCLWithOptions(schema *ResourceSchema, inputs map[string]any, env s
 			} else {
 				continue
 			}
+		}
+
+		// Handle install_core_addons: track the value but don't write it as a variable
+		if field.Name == "install_core_addons" {
+			if bv, ok := val.(bool); ok {
+				installCoreAddons = bv
+			} else if sv, ok := val.(string); ok && sv == "true" {
+				installCoreAddons = true
+			}
+			continue
 		}
 
 		// Skip empty string values for optional fields — sending "" to Terraform
@@ -127,6 +139,17 @@ func GenerateHCLWithOptions(schema *ResourceSchema, inputs map[string]any, env s
 		}
 
 		b.WriteString(formatHCLValue(field.Name, field.Type, val))
+	}
+
+	// Write core addons if enabled (and no explicit cluster_addons was provided)
+	if installCoreAddons {
+		if _, hasExplicit := inputs["cluster_addons"]; !hasExplicit {
+			b.WriteString("\n  cluster_addons = {\n")
+			b.WriteString("    coredns    = { most_recent = true }\n")
+			b.WriteString("    kube-proxy = { most_recent = true }\n")
+			b.WriteString("    vpc-cni    = { most_recent = true }\n")
+			b.WriteString("  }\n")
+		}
 	}
 
 	// Write nested block fields grouped by block name
@@ -285,6 +308,9 @@ func formatHCLValue(name string, fieldType string, value any) string {
 	case "sg_rules":
 		return formatSGRules(name, value)
 
+	case "nodegroups":
+		return formatNodeGroups(name, value)
+
 	default:
 		return fmt.Sprintf("  %s = \"%v\"\n", name, value)
 	}
@@ -436,6 +462,74 @@ func formatSGRules(name string, value any) string {
 // GenerateStateKey creates a unique S3 key for a resource's terraform state.
 func GenerateStateKey(schemaID string, resourceName string, env string) string {
 	return fmt.Sprintf("%s/%s/%s/terraform.tfstate", env, schemaID, resourceName)
+}
+
+// formatNodeGroups converts a frontend array of node group objects into an HCL map.
+func formatNodeGroups(name string, value any) string {
+	groups, ok := value.([]any)
+	if !ok || len(groups) == 0 {
+		return fmt.Sprintf("  %s = {}\n", name)
+	}
+
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf("  %s = {\n", name))
+
+	for _, g := range groups {
+		gm, ok := g.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		groupName := "default"
+		if n, ok := gm["name"].(string); ok && n != "" {
+			groupName = n
+		}
+
+		family := "t3"
+		if f, ok := gm["family"].(string); ok && f != "" {
+			family = f
+		}
+		size := "medium"
+		if s, ok := gm["size"].(string); ok && s != "" {
+			size = s
+		}
+		instanceType := family + "." + size
+
+		capacityType := "ON_DEMAND"
+		if ct, ok := gm["capacity_type"].(string); ok && ct != "" {
+			capacityType = ct
+		}
+
+		minSize := getNodeGroupInt(gm, "min_size", 1)
+		maxSize := getNodeGroupInt(gm, "max_size", 3)
+		desiredSize := getNodeGroupInt(gm, "desired_size", 2)
+
+		b.WriteString(fmt.Sprintf("    %s = {\n", groupName))
+		b.WriteString(fmt.Sprintf("      instance_types = [\"%s\"]\n", instanceType))
+		b.WriteString(fmt.Sprintf("      capacity_type  = \"%s\"\n", capacityType))
+		b.WriteString(fmt.Sprintf("      min_size       = %d\n", minSize))
+		b.WriteString(fmt.Sprintf("      max_size       = %d\n", maxSize))
+		b.WriteString(fmt.Sprintf("      desired_size   = %d\n", desiredSize))
+		b.WriteString("    }\n")
+	}
+
+	b.WriteString("  }\n")
+	return b.String()
+}
+
+func getNodeGroupInt(m map[string]any, key string, def int) int {
+	v, ok := m[key]
+	if !ok {
+		return def
+	}
+	switch val := v.(type) {
+	case float64:
+		return int(val)
+	case int:
+		return val
+	default:
+		return def
+	}
 }
 
 // ResolvePath fills in the path template with actual values.
