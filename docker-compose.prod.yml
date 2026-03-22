@@ -4,17 +4,22 @@ services:
   backend:
     image: ghcr.io/wolkvorm/wolkvorm-backend:latest
     ports:
-      - "8080:8080"
+      - "${WOLKVORM_API_PORT:-8080}:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - backend-data:/app/data
       - /tmp/wolkvorm-run:/tmp/wolkvorm-run
       - /tmp:/tmp
+      # Uncomment to add custom schemas (your own .json files)
+      # - ./custom-schemas:/custom-schemas
     environment:
       - EXECUTION_MODE=docker
       - SCHEMAS_DIR=/schemas
       - WOLKVORM_DATA_DIR=/app/data
       - IAC_ENGINE=${IAC_ENGINE:-terraform}
+      - WOLKVORM_SECRET_KEY=${WOLKVORM_SECRET_KEY:-}
+      # Uncomment if using custom schemas volume above
+      # - CUSTOM_SCHEMAS_DIR=/custom-schemas
     depends_on:
       runner:
         condition: service_completed_successfully
@@ -23,7 +28,7 @@ services:
   frontend:
     image: ghcr.io/wolkvorm/wolkvorm-frontend:latest
     ports:
-      - "3000:80"
+      - "${WOLKVORM_UI_PORT:-3000}:80"
     depends_on:
       - backend
     restart: unless-stopped

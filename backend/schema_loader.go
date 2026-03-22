@@ -122,6 +122,7 @@ func loadSchemas(schemasDir string) (map[string]*ResourceSchema, error) {
 }
 
 // getSchemas returns the cached schemas, loading them on first call.
+// Loads built-in schemas first, then overlays any custom schemas from CUSTOM_SCHEMAS_DIR.
 func getSchemas() map[string]*ResourceSchema {
 	schemasOnce.Do(func() {
 		dir := getSchemasDir()
@@ -130,6 +131,18 @@ func getSchemas() map[string]*ResourceSchema {
 		if err != nil {
 			fmt.Printf("Error loading schemas: %v\n", err)
 			schemasCache = make(map[string]*ResourceSchema)
+		}
+
+		if customDir := os.Getenv("CUSTOM_SCHEMAS_DIR"); customDir != "" {
+			customSchemas, cerr := loadSchemas(customDir)
+			if cerr != nil {
+				fmt.Printf("Warning: could not load custom schemas from %s: %v\n", customDir, cerr)
+			} else {
+				for k, v := range customSchemas {
+					schemasCache[k] = v
+					fmt.Printf("Loaded custom schema: %s\n", k)
+				}
+			}
 		}
 	})
 	return schemasCache
